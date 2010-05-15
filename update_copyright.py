@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# COPYRIGHT
+# Copyright
 
 """Automatically update copyright boilerplate.
 
@@ -47,7 +47,7 @@ License along with %(project)s.  If not, see
 <http://www.gnu.org/licenses/>.
 """.strip()
 
-COPY_RIGHT_TAG='-xyz-COPY-RIGHT-zyx-' # unlikely to occur in the wild :p
+COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
 
 ALIASES = {
     'Alberto Gomez-Casado':
@@ -244,12 +244,13 @@ def _tag_copyright(contents):
     ... (copyright ends)
     ... bla bla bla
     ... '''
-    >>> print _tag_copyright(contents),
+    >>> print _tag_copyright(contents).replace('COPY-RIGHT', 'CR')
     Some file
     bla bla
-    -xyz-COPY-RIGHT-zyx-
+    -xyz-CR-zyx-
     (copyright ends)
     bla bla bla
+    <BLANKLINE>
     """
     lines = []
     incopy = False
@@ -291,33 +292,34 @@ def _update_copyright(contents, original_year, authors):
     contents = _tag_copyright(contents)
     return contents.replace(COPY_RIGHT_TAG, copyright_string)
 
-def ignored_file(filename, ignored_paths=None, ignored_files=None):
+def ignored_file(filename, ignored_paths=None, ignored_files=None,
+                 check_disk=True, check_vcs=True):
     """
     >>> ignored_paths = ['./a/', './b/']
     >>> ignored_files = ['x', 'y']
-    >>> ignored_file('./a/z', ignored_paths, ignored_files)
+    >>> ignored_file('./a/z', ignored_paths, ignored_files, False, False)
     True
-    >>> ignored_file('./ab/z', ignored_paths, ignored_files)
+    >>> ignored_file('./ab/z', ignored_paths, ignored_files, False, False)
     False
-    >>> ignored_file('./ab/x', ignored_paths, ignored_files)
+    >>> ignored_file('./ab/x', ignored_paths, ignored_files, False, False)
     True
-    >>> ignored_file('./ab/xy', ignored_paths, ignored_files)
+    >>> ignored_file('./ab/xy', ignored_paths, ignored_files, False, False)
     False
-    >>> ignored_file('./z', ignored_paths, ignored_files)
+    >>> ignored_file('./z', ignored_paths, ignored_files, False, False)
     False
     """
     if ignored_paths == None:
         ignored_paths = IGNORED_PATHS
     if ignored_files == None:
         ignored_files = IGNORED_FILES
-    if os.path.isfile(filename) == False:
+    if check_disk == True and os.path.isfile(filename) == False:
         return True
     for path in ignored_paths:
         if filename.startswith(path):
             return True
     if os.path.basename(filename) in ignored_files:
         return True
-    if is_versioned(filename) == False:
+    if check_vcs == True and is_versioned(filename) == False:
         return True
     return False
 
