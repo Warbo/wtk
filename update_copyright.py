@@ -55,10 +55,10 @@ ALIASES = {
     'Massimo Sandal <devicerandom@gmail.com>':
         ['devicerandom',
          'unknown'],
-    'Fabrizio Benedetti':['fabrizio.benedetti'],
-    'il':['illysam'],
+    'Fabrizio Benedetti':['fabrizio.benedetti.82'],
+    'Rolf Schmidt <rschmidt@alcor.concordia.ca>':['illysam'],
     'Marco Brucale':['marcobrucale'],
-    'pp':['pancaldi.paolo'],
+    'Pancaldi Paolo':['pancaldi.paolo'],
     }
 
 IGNORED_PATHS = ['./.hg/', './doc/img', './test/data/',
