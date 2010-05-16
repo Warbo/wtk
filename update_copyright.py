@@ -50,18 +50,25 @@ License along with %(project)s.  If not, see
 COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
 
 ALIASES = {
+    'A. Seeholzer':
+        ['A. Seeholzer'],
     'Alberto Gomez-Casado':
         ['albertogomcas'],
     'Massimo Sandal <devicerandom@gmail.com>':
         ['Massimo Sandal',
          'devicerandom',
          'unknown'],
-    'Fabrizio Benedetti':['fabrizio.benedetti.82'],
+    'Fabrizio Benedetti':
+        ['fabrizio.benedetti.82'],
+    'Richard Naud <richard.naud@epfl.ch>':
+        ['Richard Naud'],
     'Rolf Schmidt <rschmidt@alcor.concordia.ca>':
         ['Rolf Schmidt',
          'illysam'],
-    'Marco Brucale':['marcobrucale'],
-    'Pancaldi Paolo':['pancaldi.paolo'],
+    'Marco Brucale':
+        ['marcobrucale'],
+    'Pancaldi Paolo':
+        ['pancaldi.paolo'],
     }
 
 IGNORED_PATHS = ['./.hg/', './doc/img', './test/data/',
@@ -72,16 +79,25 @@ IGNORED_FILES = ['COPYING', 'COPYING.LESSER']
 AUTHOR_HACKS = {
     ('hooke','driver','hdf5.py'):['Massimo Sandal'],
     ('hooke','driver','mcs.py'):['Allen Chen'],
+    ('hooke','driver','mfp3d.py'):['A. Seeholzer','Richard Naud','Rolf Schmidt',
+                                   'Alberto Gomez-Casado'],
     ('hooke','plugin','peakspot.py'):['Fabrizio Benedetti'],
+    ('hooke','plugin','showconvoluted.py'):['Rolf Schmidt'],
+    ('hooke','ui','gui','formatter.py'):['Francesco Musiani','Massimo Sandal'],
+    ('hooke','ui','gui','prettyformat.py'):['Rolf Schmidt'],
     }
 
 # Work around missing year holes in the VCS history
 YEAR_HACKS = {
     ('hooke','driver','hdf5.py'):2009,
+    ('hooke','driver','mfp3d.py'):2008,
     ('hooke','driver','picoforce.py'):2006,
     ('hooke','driver','picoforcealt.py'):2006,
     ('hooke','plugin','peakspot.py'):2007,
+    ('hooke','plugin','showconvoluted.py'):2009,
     ('hooke','plugin','tutorial.py'):2007,
+    ('hooke','ui','gui','formatter.py'):2006,
+    ('hooke','ui','gui','prettyformat.py'):2009,
     }
 
 # Helpers for VCS-specific commands
