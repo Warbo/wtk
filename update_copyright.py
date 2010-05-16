@@ -53,10 +53,13 @@ ALIASES = {
     'Alberto Gomez-Casado':
         ['albertogomcas'],
     'Massimo Sandal <devicerandom@gmail.com>':
-        ['devicerandom',
+        ['Massimo Sandal',
+         'devicerandom',
          'unknown'],
     'Fabrizio Benedetti':['fabrizio.benedetti.82'],
-    'Rolf Schmidt <rschmidt@alcor.concordia.ca>':['illysam'],
+    'Rolf Schmidt <rschmidt@alcor.concordia.ca>':
+        ['Rolf Schmidt',
+         'illysam'],
     'Marco Brucale':['marcobrucale'],
     'Pancaldi Paolo':['pancaldi.paolo'],
     }
@@ -65,6 +68,44 @@ IGNORED_PATHS = ['./.hg/', './doc/img', './test/data/',
                  './build/', '/doc/build/']
 IGNORED_FILES = ['COPYING', 'COPYING.LESSER']
 
+# Work around missing author holes in the VCS history
+AUTHOR_HACKS = {
+    ('hooke','driver','hdf5.py'):['Massimo Sandal'],
+    ('hooke','driver','mcs.py'):['Allen Chen'],
+    ('hooke','plugin','peakspot.py'):['Fabrizio Benedetti'],
+    }
+
+# Work around missing year holes in the VCS history
+YEAR_HACKS = {
+    ('hooke','driver','hdf5.py'):2009,
+    ('hooke','driver','picoforce.py'):2006,
+    ('hooke','driver','picoforcealt.py'):2006,
+    ('hooke','plugin','peakspot.py'):2007,
+    ('hooke','plugin','tutorial.py'):2007,
+    }
+
+# Helpers for VCS-specific commands
+
+def splitpath(path):
+    """Recursively split a path into elements.
+
+    Examples
+    --------
+
+    >>> splitpath(os.path.join('a', 'b', 'c'))
+    ('a', 'b', 'c')
+    >>> splitpath(os.path.join('.', 'a', 'b', 'c'))
+    ('a', 'b', 'c')
+    """
+    path = os.path.normpath(path)
+    elements = []
+    while True:
+        dirname,basename = os.path.split(path)
+        elements.insert(0,basename)
+        if dirname in ['', '.']:
+            break
+        path = dirname
+    return tuple(elements)
 
 # VCS-specific commands
 
@@ -85,20 +126,25 @@ def mercurial_cmd(*args):
     return (tmp_stdout.getvalue().rstrip('\n'),
             tmp_stderr.getvalue().rstrip('\n'))
 
-def original_year(filename):
+def original_year(filename, year_hacks=YEAR_HACKS):
     # shortdate filter: YEAR-MONTH-DAY
     output,error = mercurial_cmd('log', '--follow',
                                  '--template', '{date|shortdate}\n',
                                  filename)
     years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
+    if splitpath(filename) in year_hacks:
+        years.append(year_hacks[splitpath(filename)])
     years.sort()
     return years[0]
 
-def authors(filename):
+def authors(filename, author_hacks=AUTHOR_HACKS):
     output,error = mercurial_cmd('log', '--follow',
                                  '--template', '{author}\n',
                                  filename)
-    return list(set(output.splitlines()))
+    ret = list(set(output.splitlines()))
+    if splitpath(filename) in author_hacks:
+        ret.extend(author_hacks[splitpath(filename)])
+    return ret
 
 def authors_list():
     output,error = mercurial_cmd('log', '--follow',
