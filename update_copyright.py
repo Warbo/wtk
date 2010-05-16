@@ -1,6 +1,22 @@
 #!/usr/bin/python
 #
-# Copyright
+# Copyright (C) 2010 W. Trevor King <wking@drexel.edu>
+#
+# This file is part of Hooke.
+#
+# Hooke is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# Hooke is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with Hooke.  If not, see
+# <http://www.gnu.org/licenses/>.
 
 """Automatically update copyright boilerplate.
 
@@ -162,10 +178,13 @@ def authors(filename, author_hacks=AUTHOR_HACKS):
         ret.extend(author_hacks[splitpath(filename)])
     return ret
 
-def authors_list():
+def authors_list(author_hacks=AUTHOR_HACKS):
     output,error = mercurial_cmd('log', '--follow',
                                  '--template', '{author}\n')
-    return list(set(output.splitlines()))
+    ret = list(set(output.splitlines()))
+    for path,authors in author_hacks.items():
+        ret.extend(authors)
+    return ret
 
 def is_versioned(filename):
     output,error = mercurial_cmd('log', '--follow',
@@ -416,9 +435,11 @@ def _set_contents(filename, contents, original_contents=None, dry_run=False,
 # Update commands
 
 def update_authors(authors_fn=authors_list, dry_run=False, verbose=0):
+    authors = authors_fn()
+    authors = _replace_aliases(authors, with_email=True, aliases=ALIASES)
     new_contents = '%s was written by:\n%s\n' % (
         PROJECT_INFO['project'],
-        '\n'.join(authors_fn())
+        '\n'.join(authors)
         )
     _set_contents('AUTHORS', new_contents, dry_run=dry_run, verbose=verbose)
 
