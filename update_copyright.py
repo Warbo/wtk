@@ -87,8 +87,8 @@ ALIASES = {
         ['pancaldi.paolo'],
     }
 
-IGNORED_PATHS = ['./.hg/', './doc/img', './test/data/',
-                 './build/', '/doc/build/']
+IGNORED_PATHS = ['./.hg/', './doc/img/', './test/data/',
+                 './build/', './doc/build/']
 IGNORED_FILES = ['COPYING', 'COPYING.LESSER']
 
 # Work around missing author holes in the VCS history
