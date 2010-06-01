@@ -30,12 +30,8 @@ import email.utils
 import os
 import os.path
 import re
-import StringIO
 import sys
 import time
-
-import mercurial
-import mercurial.dispatch
 
 
 PROJECT_INFO = {
@@ -65,6 +61,15 @@ License along with %(project)s.  If not, see
 
 COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
 
+# Convert author names to canonical forms.
+# ALIASES[<canonical name>] = <list of aliases>
+# for example,
+# ALIASES = {
+#     'John Doe <jdoe@a.com>':
+#         ['John Doe', 'jdoe', 'J. Doe <j@doe.net>'],
+#     }
+# Git-based projects are encouraged to use .mailmap instead of
+# ALIASES.  See git-shortlog(1) for details.
 ALIASES = {
     'A. Seeholzer':
         ['A. Seeholzer'],
@@ -87,11 +92,21 @@ ALIASES = {
         ['pancaldi.paolo'],
     }
 
+# List of paths that should not be scanned for copyright updates.
+# IGNORED_PATHS = ['./.git/']
 IGNORED_PATHS = ['./.hg/', './doc/img/', './test/data/',
                  './build/', './doc/build/']
+# List of files that should not be scanned for copyright updates.
+# IGNORED_FILES = ['COPYING']
 IGNORED_FILES = ['COPYING', 'COPYING.LESSER']
 
-# Work around missing author holes in the VCS history
+# Work around missing author holes in the VCS history.
+# AUTHOR_HACKS[<path tuple>] = [<missing authors]
+# for example, if John Doe contributed to module.py but wasn't listed
+# in the VCS history of that file:
+# AUTHOR_HACKS = {
+#     ('path', 'to', 'module.py'):['John Doe'],
+#     }
 AUTHOR_HACKS = {
     ('hooke','driver','hdf5.py'):['Massimo Sandal'],
     ('hooke','driver','mcs.py'):['Allen Chen'],
@@ -103,7 +118,13 @@ AUTHOR_HACKS = {
     ('hooke','ui','gui','prettyformat.py'):['Rolf Schmidt'],
     }
 
-# Work around missing year holes in the VCS history
+# Work around missing year holes in the VCS history.
+# YEAR_HACKS[<path tuple>] = <original year>
+# for example, if module.py was published in 2008 but the VCS history
+# only goes back to 2010:
+# YEAR_HACKS = {
+#     ('path', 'to', 'module.py'):2008,
+#     }
 YEAR_HACKS = {
     ('hooke','driver','hdf5.py'):2009,
     ('hooke','driver','mfp3d.py'):2008,
@@ -141,58 +162,191 @@ def splitpath(path):
 
 # VCS-specific commands
 
-def mercurial_cmd(*args):
-    cwd = os.getcwd()
-    stdout = sys.stdout
-    stderr = sys.stderr
-    tmp_stdout = StringIO.StringIO()
-    tmp_stderr = StringIO.StringIO()
-    sys.stdout = tmp_stdout
-    sys.stderr = tmp_stderr
-    try:
-        mercurial.dispatch.dispatch(list(args))
-    finally:
-        os.chdir(cwd)
-        sys.stdout = stdout
-        sys.stderr = stderr
-    return (tmp_stdout.getvalue().rstrip('\n'),
-            tmp_stderr.getvalue().rstrip('\n'))
+if PROJECT_INFO['vcs'] == 'Git':
 
-def original_year(filename, year_hacks=YEAR_HACKS):
-    # shortdate filter: YEAR-MONTH-DAY
-    output,error = mercurial_cmd('log', '--follow',
-                                 '--template', '{date|shortdate}\n',
-                                 filename)
-    years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
-    if splitpath(filename) in year_hacks:
-        years.append(year_hacks[splitpath(filename)])
-    years.sort()
-    return years[0]
+    import subprocess
 
-def authors(filename, author_hacks=AUTHOR_HACKS):
-    output,error = mercurial_cmd('log', '--follow',
-                                 '--template', '{author}\n',
-                                 filename)
-    ret = list(set(output.splitlines()))
-    if splitpath(filename) in author_hacks:
-        ret.extend(author_hacks[splitpath(filename)])
-    return ret
+    _MSWINDOWS = sys.platform == 'win32'
+    _POSIX = not _MSWINDOWS
 
-def authors_list(author_hacks=AUTHOR_HACKS):
-    output,error = mercurial_cmd('log', '--follow',
-                                 '--template', '{author}\n')
-    ret = list(set(output.splitlines()))
-    for path,authors in author_hacks.items():
-        ret.extend(authors)
-    return ret
+    def invoke(args, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, expect=(0,)):
+        """
+        expect should be a tuple of allowed exit codes.
+        """
+        try :
+            if _POSIX:
+                q = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                     stdout=stdout, stderr=stderr)
+            else:
+                assert _MSWINDOWS == True, 'invalid platform'
+                # win32 don't have os.execvp() so run the command in a shell
+                q = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                     stdout=stdout, stderr=stderr, shell=True)
+        except OSError, e:
+            raise ValueError([args, e])
+        stdout,stderr = q.communicate(input=stdin)
+        status = q.wait()
+        if status not in expect:
+            raise ValueError([args, status, stdout, stderr])
+        return status, stdout, stderr
 
-def is_versioned(filename):
-    output,error = mercurial_cmd('log', '--follow',
-                                 '--template', '{date|shortdate}\n',
-                                 filename)
-    if len(error) > 0:
-        return False
-    return True
+    def git_cmd(*args):
+        status,stdout,stderr = invoke(['git'] + list(args))
+        return stdout.rstrip('\n')
+
+    def original_year(filename, year_hacks=YEAR_HACKS):
+        output = git_cmd('log', '--follow',
+                         '--format=format:%ad',  # Author date
+                         '--date=short',         # YYYY-MM-DD
+                         filename)
+        years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
+        if splitpath(filename) in year_hacks:
+            years.append(year_hacks[splitpath(filename)])
+        years.sort()
+        return years[0]
+
+    def authors(filename, author_hacks=AUTHOR_HACKS):
+        output = git_cmd('log', '--follow', '--format=format:%aN <%aE>',
+                         filename)   # Author name <author email>
+        ret = list(set(output.splitlines()))
+        if splitpath(filename) in author_hacks:
+            ret.extend(author_hacks[splitpath(filename)])
+        return ret
+
+    def authors_list(author_hacks=AUTHOR_HACKS):
+        output = git_cmd('log', '--format=format:%aN <%aE>')
+        ret = list(set(output.splitlines()))
+        for path,authors in author_hacks.items():
+            ret.extend(authors)
+        return ret
+
+    def is_versioned(filename):
+        output = git_cmd('log', '--follow', filename)
+        if len(output) == 0:
+            return False
+        return True
+
+elif PROJECT_INFO['vcs'] == 'Mercurial':
+
+    import StringIO
+    import mercurial
+    import mercurial.dispatch
+
+    def mercurial_cmd(*args):
+        cwd = os.getcwd()
+        stdout = sys.stdout
+        stderr = sys.stderr
+        tmp_stdout = StringIO.StringIO()
+        tmp_stderr = StringIO.StringIO()
+        sys.stdout = tmp_stdout
+        sys.stderr = tmp_stderr
+        try:
+            mercurial.dispatch.dispatch(list(args))
+        finally:
+            os.chdir(cwd)
+            sys.stdout = stdout
+            sys.stderr = stderr
+        return (tmp_stdout.getvalue().rstrip('\n'),
+                tmp_stderr.getvalue().rstrip('\n'))
+
+    def original_year(filename, year_hacks=YEAR_HACKS):
+        # shortdate filter: YEAR-MONTH-DAY
+        output,error = mercurial_cmd('log', '--follow',
+                                     '--template', '{date|shortdate}\n',
+                                     filename)
+        years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
+        if splitpath(filename) in year_hacks:
+            years.append(year_hacks[splitpath(filename)])
+        years.sort()
+        return years[0]
+
+    def authors(filename, author_hacks=AUTHOR_HACKS):
+        output,error = mercurial_cmd('log', '--follow',
+                                     '--template', '{author}\n',
+                                     filename)
+        ret = list(set(output.splitlines()))
+        if splitpath(filename) in author_hacks:
+            ret.extend(author_hacks[splitpath(filename)])
+        return ret
+
+    def authors_list(author_hacks=AUTHOR_HACKS):
+        output,error = mercurial_cmd('log', '--template', '{author}\n')
+        ret = list(set(output.splitlines()))
+        for path,authors in author_hacks.items():
+            ret.extend(authors)
+        return ret
+
+    def is_versioned(filename):
+        output,error = mercurial_cmd('log', '--follow', filename)
+        if len(error) > 0:
+            return False
+        return True
+
+elif PROJECT_INFO['vcs'] == 'Bazaar':
+
+    import StringIO
+    import bzrlib
+    import bzrlib.builtins
+    import bzrlib.log
+
+    class LogFormatter (bzrlib.log.LogFormatter):
+        supports_merge_revisions = True
+        preferred_levels = 0
+        supports_deta = False
+        supports_tags = False
+        supports_diff = False
+
+        def log_revision(self, revision):
+            raise NotImplementedError
+
+    class YearLogFormatter (LogFormatter):
+        def log_revision(self, revision):
+            self.to_file.write(
+                time.strftime('%Y', time.gmtime(revision.rev.timestamp))
+                +'\n')
+
+    class AuthorLogFormatter (LogFormatter):
+        def log_revision(self, revision):
+            authors = revision.rev.get_apparent_authors()
+            self.to_file.write('\n'.join(authors)+'\n')
+
+    def original_year(filename, year_hacks=YEAR_HACKS):
+        cmd = bzrlib.builtins.cmd_log()
+        cmd.outf = StringIO.StringIO()
+        cmd.run(file_list=[filename], log_format=YearLogFormatter, levels=0)
+        years = [int(year) for year in set(cmd.outf.getvalue().splitlines())]
+        if splitpath(filename) in year_hacks:
+            years.append(year_hacks[splitpath(filename)])
+        years.sort()
+        return years[0]
+
+    def authors(filename, author_hacks=AUTHOR_HACKS):
+        cmd = bzrlib.builtins.cmd_log()
+        cmd.outf = StringIO.StringIO()
+        cmd.run(file_list=[filename], log_format=AuthorLogFormatter, levels=0)
+        ret = list(set(cmd.outf.getvalue().splitlines()))
+        if splitpath(filename) in author_hacks:
+            ret.extend(author_hacks[splitpath(filename)])
+        return ret
+
+    def authors_list(author_hacks=AUTHOR_HACKS):
+        cmd = bzrlib.builtins.cmd_log()
+        cmd.outf = StringIO.StringIO()
+        cmd.run(log_format=AuthorLogFormatter, levels=0)
+        output = cmd.outf.getvalue()
+        ret = list(set(cmd.outf.getvalue().splitlines()))
+        for path,authors in author_hacks.items():
+            ret.extend(authors)
+        return ret
+
+    def is_versioned(filename):
+        cmd = bzrlib.builtins.cmd_log()
+        cmd.outf = StringIO.StringIO()
+        cmd.run(file_list=[filename])
+        return True
+
+else:
+    raise NotImplementedError('Unrecognized VCS: %(vcs)s' % PROJECT_INFO)
 
 # General utility commands
 
