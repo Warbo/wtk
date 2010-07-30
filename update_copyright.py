@@ -29,8 +29,8 @@ import difflib
 import email.utils
 import os
 import os.path
-import re
 import sys
+import textwrap
 import time
 
 
@@ -40,7 +40,7 @@ PROJECT_INFO = {
     }
 
 # Break "copyright" into "copy" and "right" to avoid matching the
-# REGEXP.
+# REGEXP if we decide to go back to regexps.
 COPY_RIGHT_TEXT="""
 This file is part of %(project)s.
 
@@ -57,6 +57,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with %(project)s.  If not, see
 <http://www.gnu.org/licenses/>.
+""".strip()
+
+SHORT_COPY_RIGHT_TEXT="""
+%(project)s comes with ABSOLUTELY NO WARRANTY; %(get-warrenty)s
+for details.  This is free software, and you are welcome to
+redistribute it under certain conditions; %(get-details)s
+for details.
 """.strip()
 
 COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
@@ -194,13 +201,18 @@ if PROJECT_INFO['vcs'] == 'Git':
         status,stdout,stderr = invoke(['git'] + list(args))
         return stdout.rstrip('\n')
 
-    def original_year(filename, year_hacks=YEAR_HACKS):
-        output = git_cmd('log', '--follow',
-                         '--format=format:%ad',  # Author date
-                         '--date=short',         # YYYY-MM-DD
-                         filename)
+    def original_year(filename=None, year_hacks=YEAR_HACKS):
+        args = [
+            '--format=format:%ad',  # Author date
+            '--date=short',         # YYYY-MM-DD
+            ]
+        if filename != None:
+            args.extend(['--follow', filename])
+        output = git_cmd('log', *args)
         years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
-        if splitpath(filename) in year_hacks:
+        if filename == None:
+            years.extend(year_hacks.values())
+        elif splitpath(filename) in year_hacks:
             years.append(year_hacks[splitpath(filename)])
         years.sort()
         return years[0]
@@ -249,13 +261,18 @@ elif PROJECT_INFO['vcs'] == 'Mercurial':
         return (tmp_stdout.getvalue().rstrip('\n'),
                 tmp_stderr.getvalue().rstrip('\n'))
 
-    def original_year(filename, year_hacks=YEAR_HACKS):
-        # shortdate filter: YEAR-MONTH-DAY
-        output,error = mercurial_cmd('log', '--follow',
-                                     '--template', '{date|shortdate}\n',
-                                     filename)
+    def original_year(filename=None, year_hacks=YEAR_HACKS):
+        args = [
+            '--template', '{date|shortdate}\n',
+            # shortdate filter: YEAR-MONTH-DAY
+            ]
+        if filename != None:
+            args.extend(['--follow', filename])
+        output,error = mercurial_cmd('log', *args)
         years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
-        if splitpath(filename) in year_hacks:
+        if filename == None:
+            years.extend(year_hacks.values())
+        elif splitpath(filename) in year_hacks:
             years.append(year_hacks[splitpath(filename)])
         years.sort()
         return years[0]
@@ -310,12 +327,17 @@ elif PROJECT_INFO['vcs'] == 'Bazaar':
             authors = revision.rev.get_apparent_authors()
             self.to_file.write('\n'.join(authors)+'\n')
 
-    def original_year(filename, year_hacks=YEAR_HACKS):
+    def original_year(filename=None, year_hacks=YEAR_HACKS):
         cmd = bzrlib.builtins.cmd_log()
         cmd.outf = StringIO.StringIO()
-        cmd.run(file_list=[filename], log_format=YearLogFormatter, levels=0)
+        kwargs = {'log_format':YearLogFormatter, 'levels':0}
+        if filename != None:
+            kwargs['file_list'] = [filenme]
+        cmd.run(**kwargs)
         years = [int(year) for year in set(cmd.outf.getvalue().splitlines())]
-        if splitpath(filename) in year_hacks:
+        if filename == None:
+            years.append(year_hacks.values())
+        elif splitpath(filename) in year_hacks:
             years.append(year_hacks[splitpath(filename)])
         years.sort()
         return years[0]
@@ -356,6 +378,8 @@ def _strip_email(*args):
     Examples
     --------
 
+    >>> _strip_email('J Doe')
+    ['J Doe']
     >>> _strip_email('J Doe <jdoe@a.com>')
     ['J Doe']
     >>> _strip_email('J Doe <jdoe@a.com>', 'JJJ Smith <jjjs@a.com>')
@@ -366,6 +390,8 @@ def _strip_email(*args):
         if arg == None:
             continue
         author,addr = email.utils.parseaddr(arg)
+        if author == '':
+            author = arg
         args[i] = author
     return args
 
@@ -409,23 +435,16 @@ def _replace_aliases(authors, with_email=True, aliases=None):
     ...     'JJJ Smith <jjjs@a.com>':['Jingly <jjjs@b.edu>'],
     ...     None:['Anonymous <a@a.com>'],
     ...     }
-    >>> _replace_aliases(['JJJ Smith <jjjs@a.com>', 'Johnny <jdoe@b.edu>',
-    ...                   'Jingly <jjjs@b.edu>', 'Anonymous <a@a.com>'],
-    ...                  with_email=True, aliases=aliases)
+    >>> authors = [
+    ...     'JJJ Smith <jjjs@a.com>', 'Johnny <jdoe@b.edu>',
+    ...     'Jingly <jjjs@b.edu>', 'J Doe <jdoe@a.com>', 'Anonymous <a@a.com>']
+    >>> _replace_aliases(authors, with_email=True, aliases=aliases)
     ['J Doe <jdoe@a.com>', 'JJJ Smith <jjjs@a.com>']
-    >>> _replace_aliases(['JJJ Smith', 'Johnny', 'Jingly', 'Anonymous'],
-    ...                  with_email=False, aliases=aliases)
+    >>> _replace_aliases(authors, with_email=False, aliases=aliases)
     ['J Doe', 'JJJ Smith']
-    >>> _replace_aliases(['JJJ Smith <jjjs@a.com>', 'Johnny <jdoe@b.edu>',
-    ...                   'Jingly <jjjs@b.edu>', 'J Doe <jdoe@a.com>'],
-    ...                  with_email=True, aliases=aliases)
-    ['J Doe <jdoe@a.com>', 'JJJ Smith <jjjs@a.com>']
     """
     if aliases == None:
         aliases = ALIASES
-    if with_email == False:
-        aliases = dict([(_strip_email(author)[0], _strip_email(*_aliases))
-                        for author,_aliases in aliases.items()])
     rev_aliases = _reverse_aliases(aliases)
     for i,author in enumerate(authors):
         if author in rev_aliases:
@@ -433,9 +452,41 @@ def _replace_aliases(authors, with_email=True, aliases=None):
     authors = sorted(list(set(authors)))
     if None in authors:
         authors.remove(None)
+    if with_email == False:
+        authors = _strip_email(*authors)
     return authors
 
-def _copyright_string(original_year, final_year, authors, prefix=''):
+def _long_author_formatter(copyright_year_string, authors):
+    """
+    >>> print '\\n'.join(_long_author_formatter(
+    ...     copyright_year_string='Copyright (C) 1990-2010',
+    ...     authors=['Jack', 'Jill', 'John']))
+    Copyright (C) 1990-2010 Jack
+                            Jill
+                            John
+    """
+    lines = ['%s %s' % (copyright_year_string, authors[0])]
+    for author in authors[1:]:
+        lines.append(' '*(len(copyright_year_string)+1) + author)
+    return lines
+
+def _short_author_formatter(copyright_year_string, authors, **kwargs):
+    """
+    >>> print '\\n'.join(_short_author_formatter(
+    ...     copyright_year_string='Copyright (C) 1990-2010',
+    ...     authors=['Jack', 'Jill', 'John']*5,
+    ...     width=50))
+    Copyright (C) 1990-2010 Jack, Jill, John, Jack,
+    Jill, John, Jack, Jill, John, Jack, Jill, John,
+    Jack, Jill, John
+    """
+    blurb = '%s %s' % (copyright_year_string, ', '.join(authors))
+    return textwrap.wrap(blurb, **kwargs)
+
+def _copyright_string(original_year, final_year, authors, prefix='',
+                      text=COPY_RIGHT_TEXT, extra_info={},
+                      author_format_fn=_long_author_formatter,
+                      formatter_kwargs={}):
     """
     >>> print _copyright_string(original_year=2005,
     ...                         final_year=2005,
@@ -454,17 +505,36 @@ def _copyright_string(original_year, final_year, authors, prefix=''):
                             B <b@b.edu>
     <BLANKLINE>
     This file...
+    >>> print _copyright_string(original_year=2005,
+    ...                         final_year=2005,
+    ...                         authors=['A <a@a.com>', 'B <b@b.edu>'],
+    ...                         prefix='',
+    ...                         text=SHORT_COPY_RIGHT_TEXT,
+    ...                         author_format_fn=_short_author_formatter,
+    ...                         extra_info={
+    ...                            'get-warrenty':'%(get-warrenty)s',
+    ...                            'get-details':'%(get-details)s',
+    ...                            },
+    ...                         formatter_kwargs={'width': 50},
+    ...                        ) # doctest: +ELLIPSIS
+    Copyright (C) 2005 A <a@a.com>, B <b@b.edu>
+    <BLANKLINE>
+    Hooke comes with ABSOLUTELY NO WARRANTY; %(get-warrenty)s.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; %(get-details)s for details.
     """
     if original_year == final_year:
         date_range = '%s' % original_year
     else:
         date_range = '%s-%s' % (original_year, final_year)
-    lines = ['Copyright (C) %s %s' % (date_range, authors[0])]
-    for author in authors[1:]:
-        lines.append(' '*(len('Copyright (C) ')+len(date_range)+1) +
-                     author)
+    copyright_year_string = 'Copyright (C) %s' % date_range
+    lines = author_format_fn(copyright_year_string, authors,
+                             **formatter_kwargs)
     lines.append('')
-    lines.extend((COPY_RIGHT_TEXT % PROJECT_INFO).splitlines())
+    info = dict(PROJECT_INFO)
+    for key,value in extra_info.items():
+        info[key] = value
+    lines.extend((text % info).splitlines())
     for i,line in enumerate(lines):
         lines[i] = (prefix + line).rstrip()
     return '\n'.join(lines)
@@ -623,6 +693,34 @@ def update_files(files=None, dry_run=False, verbose=0):
             continue
         update_file(filename, dry_run=dry_run, verbose=verbose)
 
+def update_pyfile(path, original_year_fn=original_year,
+                  authors_fn=authors_list, dry_run=False, verbose=0):
+    original_year = original_year_fn()
+    current_year = time.gmtime()[0]
+    authors = authors_fn()
+    authors = _replace_aliases(authors, with_email=False, aliases=ALIASES)
+    lines = [
+        _copyright_string(original_year, current_year, authors, prefix='# '),
+        '',
+        'LICENSE = """',
+        _copyright_string(original_year, current_year, authors, prefix=''),
+        '""".strip()',
+        '',
+        'def short_license(extra_info):',
+        '    return """',
+        _copyright_string(original_year, current_year, authors, prefix='',
+                          text=SHORT_COPY_RIGHT_TEXT,
+                          author_format_fn=_short_author_formatter,
+                          extra_info={
+                              'get-warrenty':'%(get-warrenty)s',
+                              'get-details':'%(get-details)s',
+                          }),
+        '""".strip() % extra_info',
+        ]
+    new_contents = '\n'.join(lines)+'\n'
+    _set_contents(path, new_contents, dry_run=dry_run, verbose=verbose)
+
+
 def test():
     import doctest
     doctest.testmod()
@@ -646,6 +744,9 @@ If no files are given, a list of files to update is generated
 automatically.
 """ % PROJECT_INFO
     p = optparse.OptionParser(usage)
+    p.add_option('--pyfile', dest='pyfile', default='hooke/license.py',
+                 metavar='PATH',
+                 help='Write project license info to a Python module at PATH')
     p.add_option('--test', dest='test', default=False,
                  action='store_true', help='Run internal tests and exit')
     p.add_option('--dry-run', dest='dry_run', default=False,
@@ -658,5 +759,8 @@ automatically.
         test()
         sys.exit(0)
 
-    update_authors(dry_run=options.dry_run, verbose=options.verbose)
-    update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
+    #update_authors(dry_run=options.dry_run, verbose=options.verbose)
+    #update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
+    if options.pyfile != None:
+        update_pyfile(path=options.pyfile,
+                      dry_run=options.dry_run, verbose=options.verbose)
