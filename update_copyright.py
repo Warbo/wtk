@@ -60,10 +60,9 @@ License along with %(project)s.  If not, see
 """.strip()
 
 SHORT_COPY_RIGHT_TEXT="""
-%(project)s comes with ABSOLUTELY NO WARRANTY; %(get-warrenty)s
-for details.  This is free software, and you are welcome to
-redistribute it under certain conditions; %(get-details)s
-for details.
+%(project)s comes with ABSOLUTELY NO WARRANTY and is licensed
+under the GNU Lesser General Public License.  For details,
+%(get-details)s
 """.strip()
 
 COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
@@ -511,17 +510,14 @@ def _copyright_string(original_year, final_year, authors, prefix='',
     ...                         prefix='',
     ...                         text=SHORT_COPY_RIGHT_TEXT,
     ...                         author_format_fn=_short_author_formatter,
-    ...                         extra_info={
-    ...                            'get-warrenty':'%(get-warrenty)s',
-    ...                            'get-details':'%(get-details)s',
-    ...                            },
+    ...                         extra_info={'get-details':'%(get-details)s'},
     ...                         formatter_kwargs={'width': 50},
     ...                        ) # doctest: +ELLIPSIS
     Copyright (C) 2005 A <a@a.com>, B <b@b.edu>
     <BLANKLINE>
-    Hooke comes with ABSOLUTELY NO WARRANTY; %(get-warrenty)s.
-    This is free software, and you are welcome to redistribute it
-    under certain conditions; %(get-details)s for details.
+    Hooke comes with ABSOLUTELY NO WARRANTY and is licensed
+    under the GNU Lesser General Public License.  For details,
+    %(get-details)s
     """
     if original_year == final_year:
         date_range = '%s' % original_year
@@ -711,10 +707,7 @@ def update_pyfile(path, original_year_fn=original_year,
         _copyright_string(original_year, current_year, authors, prefix='',
                           text=SHORT_COPY_RIGHT_TEXT,
                           author_format_fn=_short_author_formatter,
-                          extra_info={
-                              'get-warrenty':'%(get-warrenty)s',
-                              'get-details':'%(get-details)s',
-                          }),
+                          extra_info={'get-details':'%(get-details)s'}),
         '""".strip() % extra_info',
         ]
     new_contents = '\n'.join(lines)+'\n'
@@ -759,8 +752,8 @@ automatically.
         test()
         sys.exit(0)
 
-    #update_authors(dry_run=options.dry_run, verbose=options.verbose)
-    #update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
+    update_authors(dry_run=options.dry_run, verbose=options.verbose)
+    update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
     if options.pyfile != None:
         update_pyfile(path=options.pyfile,
                       dry_run=options.dry_run, verbose=options.verbose)
