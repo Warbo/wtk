@@ -41,29 +41,16 @@ PROJECT_INFO = {
 
 # Break "copyright" into "copy" and "right" to avoid matching the
 # REGEXP if we decide to go back to regexps.
-COPY_RIGHT_TEXT="""
-This file is part of %(project)s.
+COPY_RIGHT_TEXT = [
+    'This file is part of %(project)s.',
+    '%(project)s is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.',
+    '%(project)s is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.',
+    'You should have received a copy of the GNU Lesser General Public License along with %(project)s.  If not, see <http://www.gnu.org/licenses/>.'
+    ]
 
-%(project)s is free software: you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, either
-version 3 of the License, or (at your option) any later version.
-
-%(project)s is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with %(project)s.  If not, see
-<http://www.gnu.org/licenses/>.
-""".strip()
-
-SHORT_COPY_RIGHT_TEXT="""
-%(project)s comes with ABSOLUTELY NO WARRANTY and is licensed
-under the GNU Lesser General Public License.  For details,
-%(get-details)s
-""".strip()
+SHORT_COPY_RIGHT_TEXT = [
+    '%(project)s comes with ABSOLUTELY NO WARRANTY and is licensed under the GNU Lesser General Public License.  For details, %(get-details)s.'
+    ]
 
 COPY_RIGHT_TAG='-xyz-COPY' + '-RIGHT-zyx-' # unlikely to occur in the wild :p
 
@@ -469,23 +456,21 @@ def _long_author_formatter(copyright_year_string, authors):
         lines.append(' '*(len(copyright_year_string)+1) + author)
     return lines
 
-def _short_author_formatter(copyright_year_string, authors, **kwargs):
+def _short_author_formatter(copyright_year_string, authors):
     """
     >>> print '\\n'.join(_short_author_formatter(
     ...     copyright_year_string='Copyright (C) 1990-2010',
-    ...     authors=['Jack', 'Jill', 'John']*5,
-    ...     width=50))
-    Copyright (C) 1990-2010 Jack, Jill, John, Jack,
-    Jill, John, Jack, Jill, John, Jack, Jill, John,
-    Jack, Jill, John
+    ...     authors=['Jack', 'Jill', 'John']*5))
+    Copyright (C) 1990-2010 Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John
     """
     blurb = '%s %s' % (copyright_year_string, ', '.join(authors))
-    return textwrap.wrap(blurb, **kwargs)
+    return [blurb]
 
-def _copyright_string(original_year, final_year, authors, prefix='',
+def _copyright_string(original_year, final_year, authors,
                       text=COPY_RIGHT_TEXT, extra_info={},
                       author_format_fn=_long_author_formatter,
-                      formatter_kwargs={}):
+                      formatter_kwargs={}, prefix='', wrap=True,
+                      **wrap_kwargs):
     """
     >>> print _copyright_string(original_year=2005,
     ...                         final_year=2005,
@@ -507,33 +492,57 @@ def _copyright_string(original_year, final_year, authors, prefix='',
     >>> print _copyright_string(original_year=2005,
     ...                         final_year=2005,
     ...                         authors=['A <a@a.com>', 'B <b@b.edu>'],
-    ...                         prefix='',
     ...                         text=SHORT_COPY_RIGHT_TEXT,
     ...                         author_format_fn=_short_author_formatter,
     ...                         extra_info={'get-details':'%(get-details)s'},
-    ...                         formatter_kwargs={'width': 50},
-    ...                        ) # doctest: +ELLIPSIS
+    ...                         prefix='',
+    ...                         width=50,
+    ...                        )
     Copyright (C) 2005 A <a@a.com>, B <b@b.edu>
     <BLANKLINE>
-    Hooke comes with ABSOLUTELY NO WARRANTY and is licensed
-    under the GNU Lesser General Public License.  For details,
-    %(get-details)s
+    Hooke comes with ABSOLUTELY NO WARRANTY and is
+    licensed under the GNU Lesser General Public
+    License.  For details, %(get-details)s.
+    >>> print _copyright_string(original_year=2005,
+    ...                         final_year=2005,
+    ...                         authors=['A <a@a.com>', 'B <b@b.edu>'],
+    ...                         text=SHORT_COPY_RIGHT_TEXT,
+    ...                         extra_info={'get-details':'%(get-details)s'},
+    ...                         author_format_fn=_short_author_formatter,
+    ...                         wrap=False,
+    ...                         prefix='',
+    ...                        )
+    Copyright (C) 2005 A <a@a.com>, B <b@b.edu>
+    <BLANKLINE>
+    Hooke comes with ABSOLUTELY NO WARRANTY and is licensed under the GNU Lesser General Public License.  For details, %(get-details)s.
     """
+    for key in ['initial_indent', 'subsequent_indent']:
+        if key not in wrap_kwargs:
+            wrap_kwargs[key] = prefix
+
     if original_year == final_year:
         date_range = '%s' % original_year
     else:
         date_range = '%s-%s' % (original_year, final_year)
     copyright_year_string = 'Copyright (C) %s' % date_range
+
     lines = author_format_fn(copyright_year_string, authors,
                              **formatter_kwargs)
-    lines.append('')
+    for i,line in enumerate(lines):
+        lines[i] = prefix + line
+
     info = dict(PROJECT_INFO)
     for key,value in extra_info.items():
         info[key] = value
-    lines.extend((text % info).splitlines())
-    for i,line in enumerate(lines):
-        lines[i] = (prefix + line).rstrip()
-    return '\n'.join(lines)
+    text = [paragraph % info for paragraph in text]
+
+    if wrap == True:
+        text = [textwrap.fill(p, **wrap_kwargs) for p in text]
+    else:
+        assert wrap_kwargs['subsequent_indent'] == '', \
+            wrap_kwargs['subsequent_indent']
+    sep = '\n%s\n' % prefix.rstrip()
+    return sep.join(['\n'.join(lines)] + text)
 
 def _tag_copyright(contents):
     """
@@ -695,21 +704,31 @@ def update_pyfile(path, original_year_fn=original_year,
     current_year = time.gmtime()[0]
     authors = authors_fn()
     authors = _replace_aliases(authors, with_email=False, aliases=ALIASES)
+    paragraphs = _copyright_string(
+        original_year, current_year, authors,
+        text=SHORT_COPY_RIGHT_TEXT,
+        extra_info={'get-details':'%(get-details)s'},
+        author_format_fn=_short_author_formatter, wrap=False,
+        ).split('\n\n')
     lines = [
         _copyright_string(original_year, current_year, authors, prefix='# '),
-        '',
+        '', 'import textwrap', '', '',
         'LICENSE = """',
         _copyright_string(original_year, current_year, authors, prefix=''),
         '""".strip()',
         '',
-        'def short_license(extra_info):',
-        '    return """',
-        _copyright_string(original_year, current_year, authors, prefix='',
-                          text=SHORT_COPY_RIGHT_TEXT,
-                          author_format_fn=_short_author_formatter,
-                          extra_info={'get-details':'%(get-details)s'}),
-        '""".strip() % extra_info',
+        'def short_license(extra_info, wrap=True, **kwargs):',
+        '    paragraphs = [',
         ]
+    for p in paragraphs:
+        lines.append("        '%s' %% extra_info," % p.replace("'", r"\'"))
+    lines.extend([
+            '        ]',
+            '    if wrap == True:',
+            '        for i,p in enumerate(paragraphs):',
+            '            paragraphs[i] = textwrap.fill(p, **kwargs)',
+            r"    return '\n\n'.join(paragraphs)",
+            ])
     new_contents = '\n'.join(lines)+'\n'
     _set_contents(path, new_contents, dry_run=dry_run, verbose=verbose)
 
@@ -752,8 +771,8 @@ automatically.
         test()
         sys.exit(0)
 
-    update_authors(dry_run=options.dry_run, verbose=options.verbose)
-    update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
+    #update_authors(dry_run=options.dry_run, verbose=options.verbose)
+    #update_files(files=args, dry_run=options.dry_run, verbose=options.verbose)
     if options.pyfile != None:
         update_pyfile(path=options.pyfile,
                       dry_run=options.dry_run, verbose=options.verbose)
