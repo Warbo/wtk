@@ -36,7 +36,7 @@ import time
 
 PROJECT_INFO = {
     'project': 'Hooke',
-    'vcs': 'Mercurial',
+    'vcs': 'Git',
     }
 
 # Break "copyright" into "copy" and "right" to avoid matching the
