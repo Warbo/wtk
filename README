@@ -1,0 +1,4 @@
+``update_copyright.py`` is an automatic copyright updating tool.  I
+wrote the original for Bugs Everywhere, but ended up copying it into a
+number of my projects.  Copying is bad, so here it is, split out as
+its own separate project.
