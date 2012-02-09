@@ -163,14 +163,17 @@ if PROJECT_INFO['vcs'] == 'Git':
         year_format = ['--pretty=format:%ad',  # Author date
                        '--date=short']         # YYYY-MM-DD
 
-    def original_year(filename, year_hacks=YEAR_HACKS):
-        output = git_cmd(*(['log', '--follow']
-                           + year_format
-                           + [filename]))
+    def original_year(filename=None, year_hacks=YEAR_HACKS):
+        args = ['log'] + year_format
+        if filename is not None:
+            args.extend(['--follow'] + [filename])
+        output = git_cmd(*args)
         if version.startswith('1.5.'):
             output = '\n'.join([x.split()[0] for x in output.splitlines()])
         years = [int(line.split('-', 1)[0]) for line in output.splitlines()]
-        if splitpath(filename) in year_hacks:
+        if filename is None:
+            years.extend(year_hacks.values())
+        elif splitpath(filename) in year_hacks:
             years.append(year_hacks[splitpath(filename)])
         years.sort()
         return years[0]
@@ -729,7 +732,7 @@ If no files are given, a list of files to update is generated
 automatically.
 """ % PROJECT_INFO
     p = optparse.OptionParser(usage)
-    p.add_option('--pyfile', dest='pyfile', default='hooke/license.py',
+    p.add_option('--pyfile', dest='pyfile', default='update_copyright/license.py',
                  metavar='PATH',
                  help='Write project license info to a Python module at PATH')
     p.add_option('--test', dest='test', default=False,
