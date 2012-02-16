@@ -53,8 +53,8 @@ class VCSBackend (object):
     def authors(self, filename=None, with_emails=True):
         authors = self._authors(filename=filename)
         if filename is None:
-            for path,authors in self._author_hacks.items():
-                authors.update(authors)
+            for path,_authors in self._author_hacks.items():
+                authors.update(_authors)
         elif _utils.splitpath(filename) in self._author_hacks:
             authors.update(self._author_hacks[_utils.splitpath(filename)])
         return _utils.replace_aliases(
