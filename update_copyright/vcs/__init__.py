@@ -18,13 +18,17 @@
 
 """Backends for version control systems."""
 
+import os.path as _os_path
+
 from . import utils as _utils
 
 
 class VCSBackend (object):
     name = None
 
-    def __init__(self, author_hacks=None, year_hacks=None, aliases=None):
+    def __init__(self, root='.', author_hacks=None, year_hacks=None,
+                 aliases=None):
+        self._root = root
         if author_hacks is None:
             author_hacks = {}
         self._author_hacks = author_hacks
@@ -42,8 +46,10 @@ class VCSBackend (object):
         years = self._years(filename=filename)
         if filename is None:
             years.update(self._year_hacks.values())
-        elif _utils.splitpath(filename) in self._year_hacks:
-            years.add(self._year_hacks[_utils.splitpath(filename)])
+        else:
+            filename = _os_path.relpath(filename, self._root)
+            if _utils.splitpath(filename) in self._year_hacks:
+                years.add(self._year_hacks[_utils.splitpath(filename)])
         years = sorted(years)
         return years[0]
 

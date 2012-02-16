@@ -33,7 +33,10 @@ from . import utils as _utils
 class MercurialBackend (_VCSBackend):
     name = 'Mercurial'
 
-    @staticmethod
+    def __init__(self, **kwargs):
+        super(MercurialBackend, self).__init__(**kwargs)
+        self._version = _version
+
     def _hg_cmd(*args):
         cwd = _os.getcwd()
         stdout = _sys.stdout
@@ -42,6 +45,7 @@ class MercurialBackend (_VCSBackend):
         tmp_stderr = _StringIO.StringIO()
         _sys.stdout = tmp_stdout
         _sys.stderr = tmp_stderr
+        _os.chdir(self._root)
         try:
             _mercurial_dispatch.dispatch(list(args))
         finally:
@@ -50,10 +54,6 @@ class MercurialBackend (_VCSBackend):
             _sys.stderr = stderr
         return (tmp_stdout.getvalue().rstrip('\n'),
                 tmp_stderr.getvalue().rstrip('\n'))
-
-    def __init__(self, **kwargs):
-        super(MercurialBackend, self).__init__(**kwargs)
-        self._version = _version
 
     def _years(self, filename=None):
         args = [

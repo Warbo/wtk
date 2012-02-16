@@ -33,6 +33,7 @@ file in your project root.
 """
 
 import logging as _logging
+import os.path as _os_path
 
 from update_copyright import LOG as _LOG
 from update_copyright.project import Project
@@ -61,7 +62,7 @@ if __name__ == '__main__':
 
     _LOG.setLevel(max(_logging.DEBUG, _logging.ERROR - 10*options.verbose))
 
-    project = Project()
+    project = Project(root=_os_path.dirname(_os_path.abspath(options.config)))
     project.load_config(open(options.config, 'r'))
     if options.authors:
         project.update_authors(dry_run=options.dry_run)

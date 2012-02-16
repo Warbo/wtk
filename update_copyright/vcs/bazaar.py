@@ -17,6 +17,7 @@
 # <http://www.gnu.org/licenses/>.
 
 import StringIO as _StringIO
+import os as _os
 
 import bzrlib as _bzrlib
 import bzrlib.builtins as _bzrlib_builtins
@@ -56,13 +57,21 @@ class BazaarBackend (_VCSBackend):
         super(BazaarBackend, self).__init__(**kwargs)
         self._version = _bzrlib.__version__
 
+    def _bzr_cmd(self, cmd, **kwargs):
+        cwd = _os.getcwd()
+        _os.chdir(self._root)
+        try:
+            cmd.run(**kwargs)
+        finally:
+            _os.chdir(cwd)
+
     def _years(self, filename=None):
         cmd = _bzrlib_builtins.cmd_log()
         cmd.outf = _StringIO.StringIO()
         kwargs = {'log_format':_YearLogFormatter, 'levels':0}
         if filename is not None:
             kwargs['file_list'] = [filename]
-        cmd.run(**kwargs)
+        self._bzr_cmd(cmd=cmd, **kwargs)
         years = set(int(year) for year in cmd.outf.getvalue().splitlines())
         return years
 
@@ -72,12 +81,12 @@ class BazaarBackend (_VCSBackend):
         kwargs = {'log_format':_AuthorLogFormatter, 'levels':0}
         if filename is not None:
             kwargs['file_list'] = [filename]
-        cmd.run(**kwargs)
+        self._bzr_cmd(cmd=cmd, **kwargs)
         authors = set(cmd.outf.getvalue().splitlines())
         return authors
 
     def is_versioned(self, filename):
         cmd = _bzrlib_builtins.cmd_log()
         cmd.outf = StringIO.StringIO()
-        cmd.run(file_list=[filename])
+        self._bzr_cmd(cmd=cmd, file_list=[filename])
         return True

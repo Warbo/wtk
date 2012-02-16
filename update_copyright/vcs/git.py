@@ -23,12 +23,6 @@ from . import utils as _utils
 class GitBackend (_VCSBackend):
     name = 'Git'
 
-    @staticmethod
-    def _git_cmd(*args):
-        status,stdout,stderr = _utils.invoke(
-            ['git'] + list(args), unicode_output=True)
-        return stdout.rstrip('\n')
-
     def __init__(self, **kwargs):
         super(GitBackend, self).__init__(**kwargs)
         self._version = self._git_cmd('--version').split(' ')[-1]
@@ -42,6 +36,11 @@ class GitBackend (_VCSBackend):
             self._author_format = '--pretty=format:%aN <%aE>'
             self._year_format = ['--pretty=format:%ad',  # Author date
                                  '--date=short']         # YYYY-MM-DD
+
+    def _git_cmd(self, *args):
+        status,stdout,stderr = _utils.invoke(
+            ['git'] + list(args), cwd=self._root, unicode_output=True)
+        return stdout.rstrip('\n')
 
     def _years(self, filename=None):
         args = ['log'] + self._year_format

@@ -31,7 +31,7 @@ _POSIX = not _MSWINDOWS
 
 
 def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
-           expect=(0,), unicode_output=False, encoding=None):
+           cwd=None, expect=(0,), unicode_output=False, encoding=None):
     """Invoke an external program and return the results
 
     ``expect`` should be a tuple of allowed exit codes.
@@ -42,12 +42,14 @@ def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     try :
         if _POSIX:
             q = _subprocess.Popen(args, stdin=_subprocess.PIPE,
-                                  stdout=stdout, stderr=stderr)
+                                  stdout=stdout, stderr=stderr,
+                                  close_fds=True, cwd=cwd)
         else:
             assert _MSWINDOWS == True, 'invalid platform'
             # win32 don't have os.execvp() so run the command in a shell
             q = _subprocess.Popen(args, stdin=_subprocess.PIPE,
-                                  stdout=stdout, stderr=stderr, shell=True)
+                                  stdout=stdout, stderr=stderr, shell=True,
+                                  cwd=cwd)
     except OSError, e:
         raise ValueError([args, e])
     stdout,stderr = q.communicate(input=stdin)
@@ -80,7 +82,7 @@ def splitpath(path):
     while True:
         dirname,basename = _os_path.split(path)
         elements.insert(0,basename)
-        if dirname in ['', '.']:
+        if dirname in ['/', '', '.']:
             break
         path = dirname
     return tuple(elements)

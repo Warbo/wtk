@@ -38,8 +38,9 @@ except ImportError, _mercurial_import_error:
 
 
 class Project (object):
-    def __init__(self, name=None, vcs=None, copyright=None,
+    def __init__(self, root='.', name=None, vcs=None, copyright=None,
                  short_copyright=None):
+        self._root = _os_path.normpath(_os_path.abspath(root))
         self._name = name
         self._vcs = vcs
         self._author_hacks = None
@@ -80,6 +81,7 @@ class Project (object):
             pass
         else:
             kwargs = {
+                'root': self._root,
                 'author_hacks': self._author_hacks,
                 'year_hacks': self._year_hacks,
                 'aliases': self._aliases,
@@ -124,9 +126,11 @@ class Project (object):
         else:
             self._ignored_paths = [pth.strip() for pth in ignored.split(',')]
         try:
-            self._pyfile = parser.get('files', 'pyfile')
+            pyfile = parser.get('files', 'pyfile')
         except _configparser.NoOptionError:
             pass
+        else:
+            self._pyfile = _os_path.join(self._root, pyfile)
 
     def _load_author_hacks_conf(self, parser, encoding=None):
         if encoding is None:
@@ -173,7 +177,8 @@ class Project (object):
         new_contents = u'{} was written by:\n{}\n'.format(
             self._name, u'\n'.join(authors))
         _utils.set_contents(
-            'AUTHORS', new_contents, unicode=True, encoding=self._encoding,
+            _os_path.join(self._root, 'AUTHORS'),
+            new_contents, unicode=True, encoding=self._encoding,
             dry_run=dry_run)
 
     def update_file(self, filename, dry_run=False):
@@ -193,7 +198,7 @@ class Project (object):
 
     def update_files(self, files=None, dry_run=False):
         if files is None or len(files) == 0:
-            files = _utils.list_files(root='.')
+            files = _utils.list_files(root=self._root)
         for filename in files:
             if self._ignored_file(filename=filename):
                 continue
@@ -259,6 +264,7 @@ class Project (object):
         >>> ignored_file('./z', ignored_paths, ignored_files, False, False)
         False
         """
+        filename = _os_path.relpath(filename, self._root)
         if self._ignored_paths is not None:
             for path in self._ignored_paths:
                 if _fnmatch.fnmatch(filename, path):
