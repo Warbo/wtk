@@ -94,8 +94,9 @@ class Project (object):
         parser = _configparser.RawConfigParser()
         parser.readfp(stream)
         for section in parser.sections():
+            clean_section = section.replace('-', '_')
             try:
-                loader = getattr(self, '_load_{}_conf'.format(section))
+                loader = getattr(self, '_load_{}_conf'.format(clean_section))
             except AttributeError, e:
                 _LOG.error('invalid {} section'.format(section))
                 raise
