@@ -103,8 +103,12 @@ class Project (object):
             if vcs == 'Git':
                 self._vcs = _GitBackend()
             elif vcs == 'Bazaar':
+                if _BazaarBackend is None:
+                    raise _bazaar_import_error
                 self._vcs = _BazaarBackend()
             elif vcs == 'Mercurial':
+                if _MercurialBackend is None:
+                    raise _mercurial_import_error
                 self._vcs = _MercurialBackend()
             else:
                 raise NotImplementedError('vcs: {}'.format(vcs))
