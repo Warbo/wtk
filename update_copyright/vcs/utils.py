@@ -23,15 +23,21 @@ import os.path as _os_path
 import subprocess as _subprocess
 import sys as _sys
 
+from ..utils import ENCODING as _ENCODING
+
 
 _MSWINDOWS = _sys.platform == 'win32'
 _POSIX = not _MSWINDOWS
 
 
 def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
-           expect=(0,)):
-    """
-    expect should be a tuple of allowed exit codes.
+           expect=(0,), unicode_output=False, encoding=None):
+    """Invoke an external program and return the results
+
+    ``expect`` should be a tuple of allowed exit codes.
+
+    When ``unicode_output`` is ``True``, convert stdout and stdin
+    strings to unicode before returing them.
     """
     try :
         if _POSIX:
@@ -46,6 +52,13 @@ def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
         raise ValueError([args, e])
     stdout,stderr = q.communicate(input=stdin)
     status = q.wait()
+    if unicode_output == True:
+        if encoding is None:
+            encoding = _ENCODING
+        if stdout is not None:
+            stdout = unicode(stdout, encoding)
+        if stderr is not None:
+            stderr = unicode(stderr, encoding)
     if status not in expect:
         raise ValueError([args, status, stdout, stderr])
     return status, stdout, stderr

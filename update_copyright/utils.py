@@ -16,13 +16,19 @@
 # along with update-copyright.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import codecs as _codecs
 import difflib as _difflib
+import locale as _locale
 import os as _os
 import os.path as _os_path
+import sys as _sys
 import textwrap as _textwrap
 import time as _time
 
 from . import LOG as _LOG
+
+
+ENCODING = _locale.getpreferredencoding() or _sys.getdefaultencoding()
 
 
 def long_author_formatter(copyright_year_string, authors):
@@ -188,24 +194,31 @@ def update_copyright(contents, tag=None, **kwargs):
     contents = tag_copyright(contents=contents, tag=tag)
     return contents.replace(tag, string)
 
-def get_contents(filename):
+def get_contents(filename, unicode=False, encoding=None):
     if _os_path.isfile(filename):
-        f = open(filename, 'r')
+        if unicode:
+            if encoding is None:
+                encoding = ENCODING
+            f = _codecs.open(filename, 'r', encoding=encoding)
+        else:
+            f = open(filename, 'r')
         contents = f.read()
         f.close()
         return contents
     return None
 
-def set_contents(filename, contents, original_contents=None, dry_run=False):
+def set_contents(filename, contents, original_contents=None, unicode=False,
+                 encoding=None, dry_run=False):
     if original_contents is None:
-        original_contents = get_contents(filename=filename)
+        original_contents = get_contents(
+            filename=filename, unicode=unicode, encoding=encoding)
     _LOG.debug('check contents of {}'.format(filename))
     if contents != original_contents:
         if original_contents is None:
             _LOG.info('creating {}'.format(filename))
         else:
             _LOG.info('updating {}'.format(filename))
-            _LOG.debug('\n'.join(
+            _LOG.debug(u'\n'.join(
                     _difflib.unified_diff(
                         original_contents.splitlines(), contents.splitlines(),
                         fromfile=_os_path.normpath(
@@ -213,7 +226,12 @@ def set_contents(filename, contents, original_contents=None, dry_run=False):
                         tofile=_os_path.normpath(_os_path.join('b', filename)),
                         n=3, lineterm='')))
         if dry_run == False:
-            f = file(filename, 'w')
+            if unicode:
+                if encoding is None:
+                    encoding = ENCODING
+                f = _codecs.open(filename, 'w', encoding=encoding)
+            else:
+                f = file(filename, 'w')
             f.write(contents)
             f.close()
     _LOG.debug('no change in {}'.format(filename))

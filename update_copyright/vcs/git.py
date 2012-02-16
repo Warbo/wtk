@@ -25,7 +25,8 @@ class GitBackend (_VCSBackend):
 
     @staticmethod
     def _git_cmd(*args):
-        status,stdout,stderr = _utils.invoke(['git'] + list(args))
+        status,stdout,stderr = _utils.invoke(
+            ['git'] + list(args), unicode_output=True)
         return stdout.rstrip('\n')
 
     def __init__(self, **kwargs):
