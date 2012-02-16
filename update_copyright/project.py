@@ -129,7 +129,7 @@ class Project (object):
         except _configparser.NoOptionError:
             pass
         else:
-            self._ignored_paths = [p.strip() for p in ignored.split(',')]
+            self._ignored_paths = [pth.strip() for pth in ignored.split(',')]
         try:
             self._pyfile = p.get('files', 'pyfile')
         except _configparser.NoOptionError:
