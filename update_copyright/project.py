@@ -91,14 +91,23 @@ class Project (object):
         self._copyright_tag = u'-xyz-COPY' + u'-RIGHT-zyx-'
 
     def load_config(self, stream):
-        p = _configparser.RawConfigParser()
-        p.readfp(stream)
+        parser = _configparser.RawConfigParser()
+        parser.readfp(stream)
+        for section in parser.sections():
+            try:
+                loader = getattr(self, '_load_{}_conf'.format(section))
+            except AttributeError, e:
+                _LOG.error('invalid {} section'.format(section))
+                raise
+            loader(parser=parser)
+
+    def _load_project_conf(self, parser):
         try:
-            self._name = p.get('project', 'name')
+            self._name = parser.get('project', 'name')
         except _configparser.NoOptionError:
             pass
         try:
-            vcs = p.get('project', 'vcs')
+            vcs = parser.get('project', 'vcs')
         except _configparser.NoOptionError:
             pass
         else:
@@ -114,30 +123,35 @@ class Project (object):
                 self._vcs = _MercurialBackend()
             else:
                 raise NotImplementedError('vcs: {}'.format(vcs))
+
+    def _load_copyright_conf(self, parser):
         try:
-            self._copyright = p.get('copyright', 'long').splitlines()
+            self._copyright = parser.get('copyright', 'long').splitlines()
         except _configparser.NoOptionError:
             pass
         try:
-            self._short_copyright = p.get('copyright', 'short').splitlines()
+            self._short_copyright = parser.get(
+                'copyright', 'short').splitlines()
+        except _configparser.NoOptionError:
+            pass
+
+    def _load_files_conf(self, parser):
+        try:
+            self.with_authors = parser.get('files', 'authors')
         except _configparser.NoOptionError:
             pass
         try:
-            self.with_authors = p.get('files', 'authors')
+            self.with_files = parser.get('files', 'files')
         except _configparser.NoOptionError:
             pass
         try:
-            self.with_files = p.get('files', 'files')
-        except _configparser.NoOptionError:
-            pass
-        try:
-            ignored = p.get('files', 'ignored')
+            ignored = parser.get('files', 'ignored')
         except _configparser.NoOptionError:
             pass
         else:
             self._ignored_paths = [pth.strip() for pth in ignored.split(',')]
         try:
-            self._pyfile = p.get('files', 'pyfile')
+            self._pyfile = parser.get('files', 'pyfile')
         except _configparser.NoOptionError:
             pass
 
