@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2012 W. Trevor King <wking@drexel.edu>
+# Copyright (C) 2012 W. Trevor King
 #
 # This file is part of update-copyright.
 #
