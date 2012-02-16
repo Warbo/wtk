@@ -221,4 +221,4 @@ def set_contents(filename, contents, original_contents=None, dry_run=False):
 def list_files(root='.'):
     for dirpath,dirnames,filenames in _os.walk(root):
         for filename in filenames:
-            yield _os_path.join(root, dirpath, filename)
+            yield _os_path.normpath(_os_path.join(root, dirpath, filename))
