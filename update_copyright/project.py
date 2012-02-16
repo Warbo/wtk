@@ -231,7 +231,10 @@ class Project (object):
         if self._ignored_paths is not None:
             for path in self._ignored_paths:
                 if _fnmatch.fnmatch(filename, path):
+                    _LOG.debug('ignoring {} (matched {})'.format(
+                            filename, path))
                     return True
         if self._vcs and not self._vcs.is_versioned(filename):
+            _LOG.debug('ignoring {} (not versioned))'.format(filename))
             return True
         return False
