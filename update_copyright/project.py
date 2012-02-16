@@ -89,7 +89,7 @@ class Project (object):
         self._copyright_tag = '-xyz-COPY' + '-RIGHT-zyx-'
 
     def load_config(self, stream):
-        p = _configparser.RawConfigParser()
+        p = _configparser.ConfigParser(interpolation=None)
         p.readfp(stream)
         try:
             self._name = p.get('project', 'name')
