@@ -43,7 +43,7 @@ class VCSBackend (object):
         if filename is None:
             years.update(self._year_hacks.values())
         elif _utils.splitpath(filename) in self._year_hacks:
-            years.update(year_hacks[_utils.splitpath(filename)])
+            years.update(self._year_hacks[_utils.splitpath(filename)])
         years = sorted(years)
         return years[0]
 
