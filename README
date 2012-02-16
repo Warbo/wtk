@@ -38,7 +38,7 @@ Installing by hand
 See the homepage_ for details.  To install the checkout, run the
 standard::
 
-    $ python setup.py install
+  $ python setup.py install
 
 Usage
 =====
@@ -114,12 +114,43 @@ is replaced by a new blurb, which is automatically generated from your
 configured long copyright string, with author names and edit years
 extracted from the VCS data for that file.
 
+Incomplete VCS history
+----------------------
+
+Sometimes files have authors or alterations not recorded in a
+project's VCS history.  You can use the ``author-hacks`` section to
+add authors to a file, and the ``year-hacks`` section to adjust the
+files original year.  Author names should be comma-separated.  For
+example::
+
+  [author-hacks]
+  path/to/file: John Doe <jdoe@a.com>, Jane Smith <jsmith@b.net>
+
+  [year-hacks]
+  path/to/another/file: 2009
+
+Add entries for as many files as you like.  Paths should be relative
+to your project root.  Always use forward slashes (``/``) to separate
+path elements.
+
+Aliases
+-------
+
+Occasionally names or email addresses used when committing to the VCS
+will go out of date.  Some VCSs have a built-in method of dealing with
+this (e.g. Git's .mailmap_).  For those without such a VCS, you can
+add an `aliases`` section to your config file, where the option names
+are the canonical name of the ...?.  For example::
+
+  [aliases]
+  John Doe <jdoe@a.com>: John Doe, jdoe, J. Doe <j@doe.net>
+
 Testing
 =======
 
 Run the internal unit tests with::
 
-    $ nosetests --with-doctest --doctest-tests update_copyright
+  $ nosetests --with-doctest --doctest-tests update_copyright
 
 Licence
 =======
@@ -144,4 +175,5 @@ wking@drexel.edu
   http://docs.python.org/dev/library/configparser.html#configparser.RawConfigParser
 .. _syntax documentation:
   http://docs.python.org/dev/library/configparser.html#supported-ini-file-structure
+.. _.mailmap: http://schacon.github.com/git/git-shortlog.html#_mapping_authors
 .. _GNU General Public License Version 3: http://www.gnu.org/licenses/gpl.html

@@ -16,43 +16,7 @@
 # along with update-copyright.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-"""Project-specific configuration.
-
-# Convert author names to canonical forms.
-# ALIASES[<canonical name>] = <list of aliases>
-# for example,
-# ALIASES = {
-#     'John Doe <jdoe@a.com>':
-#         ['John Doe', 'jdoe', 'J. Doe <j@doe.net>'],
-#     }
-# Git-based projects are encouraged to use .mailmap instead of
-# ALIASES.  See git-shortlog(1) for details.
-
-# List of paths that should not be scanned for copyright updates.
-# IGNORED_PATHS = ['./.git/']
-IGNORED_PATHS = ['./.git']
-# List of files that should not be scanned for copyright updates.
-# IGNORED_FILES = ['COPYING']
-IGNORED_FILES = ['COPYING']
-
-# Work around missing author holes in the VCS history.
-# AUTHOR_HACKS[<path tuple>] = [<missing authors]
-# for example, if John Doe contributed to module.py but wasn't listed
-# in the VCS history of that file:
-# AUTHOR_HACKS = {
-#     ('path', 'to', 'module.py'):['John Doe'],
-#     }
-AUTHOR_HACKS = {}
-
-# Work around missing year holes in the VCS history.
-# YEAR_HACKS[<path tuple>] = <original year>
-# for example, if module.py was published in 2008 but the VCS history
-# only goes back to 2010:
-# YEAR_HACKS = {
-#     ('path', 'to', 'module.py'):2008,
-#     }
-YEAR_HACKS = {}
-"""
+"""Project-specific configuration."""
 
 import ConfigParser as _configparser
 import fnmatch as _fnmatch
@@ -78,6 +42,9 @@ class Project (object):
                  short_copyright=None):
         self._name = name
         self._vcs = vcs
+        self._author_hacks = None
+        self._year_hacks = None
+        self._aliases = None
         self._copyright = None
         self._short_copyright = None
         self.with_authors = False
@@ -112,16 +79,21 @@ class Project (object):
         except _configparser.NoOptionError:
             pass
         else:
+            kwargs = {
+                'author_hacks': self._author_hacks,
+                'year_hacks': self._year_hacks,
+                'aliases': self._aliases,
+                }
             if vcs == 'Git':
-                self._vcs = _GitBackend()
+                self._vcs = _GitBackend(**kwargs)
             elif vcs == 'Bazaar':
                 if _BazaarBackend is None:
                     raise _bazaar_import_error
-                self._vcs = _BazaarBackend()
+                self._vcs = _BazaarBackend(**kwargs)
             elif vcs == 'Mercurial':
                 if _MercurialBackend is None:
                     raise _mercurial_import_error
-                self._vcs = _MercurialBackend()
+                self._vcs = _MercurialBackend(**kwargs)
             else:
                 raise NotImplementedError('vcs: {}'.format(vcs))
 
@@ -155,6 +127,39 @@ class Project (object):
             self._pyfile = parser.get('files', 'pyfile')
         except _configparser.NoOptionError:
             pass
+
+    def _load_author_hacks_conf(self, parser, encoding=None):
+        if encoding is None:
+            encoding = self._encoding or _utils.ENCODING
+        author_hacks = {}
+        for path in parser.options('author-hacks'):
+            authors = parser.get('author-hacks', path)
+            author_hacks[tuple(path.split('/'))] = set(
+                unicode(a.strip(), encoding) for a in authors.split(','))
+        self._author_hacks = author_hacks
+        if self._vcs is not None:
+            self._vcs._author_hacks = self._author_hacks
+
+    def _load_year_hacks_conf(self, parser):
+        year_hacks = {}
+        for path in parser.options('year-hacks'):
+            year = parser.get('year-hacks', path)
+            year_hacks[tuple(path.split('/'))] = int(year)
+        self._year_hacks = year_hacks
+        if self._vcs is not None:
+            self._vcs._year_hacks = self._year_hacks
+
+    def _load_aliases_conf(self, parser, encoding=None):
+        if encoding is None:
+            encoding = self._encoding or _utils.ENCODING
+        aliases = {}
+        for author in parser.options('aliases'):
+            _aliases = parser.get('aliases', author)
+            aliases[author] = set(
+                unicode(a.strip(), encoding) for a in _aliases.split(','))
+        self._aliases = aliases
+        if self._vcs is not None:
+            self._vcs._aliases = self._aliases
 
     def _info(self):
         return {
