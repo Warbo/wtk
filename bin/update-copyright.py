@@ -28,8 +28,8 @@ Replaces every line starting with ``^# Copyright`` and continuing with
 line between the blurb and your comment, so the next run of
 ``update_copyright.py`` doesn't clobber your comment.
 
-If no files are given, a list of files to update is generated
-automatically.
+You should configure this program via an ``.update-copyright.conf``
+file in your project root.
 """
 
 import logging as _logging
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     import optparse
     import sys
 
-    usage = "%%prog [options] [file ...]"
+    usage = "%prog [options] [file ...]"
 
     p = optparse.OptionParser(usage=usage, description=__doc__)
     p.add_option('--config', dest='config', default='.update-copyright.conf',
