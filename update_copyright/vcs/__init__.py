@@ -58,7 +58,7 @@ class VCSBackend (object):
         elif _utils.splitpath(filename) in self._author_hacks:
             authors.update(self._author_hacks[_utils.splitpath(filename)])
         return _utils.replace_aliases(
-            authors, with_email=False, aliases=self._aliases)
+            authors, with_email=with_emails, aliases=self._aliases)
 
     def is_versioned(self, filename=None):
         raise NotImplementedError()
