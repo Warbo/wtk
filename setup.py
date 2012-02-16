@@ -40,7 +40,7 @@ _setup(
     version=__version__,
     maintainer='W. Trevor King',
     maintainer_email='wking@drexel.edu',
-    url='http://tremily.us/posts/update-copyright/',
+    url='http://blog.tremily.us/posts/update-copyright/',
     download_url='http://physics.drexel.edu/~wking/code/git/gitweb.cgi?p=update-copyright.git;a=snapshot;h=v{};sf=tgz'.format(__version__),
     license = 'GNU General Public License (GPL)',
     platforms = ['all'],
