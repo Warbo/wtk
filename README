@@ -47,7 +47,7 @@ You'll need a project that you version with one of our supported VCSs
 (currently Git, Mercurial, and Bazaar, but it should be pretty easy to
 add backends for other systems).  You'll also need a config file
 called ``.update-copyright.conf`` in your package root, which will be
-parsed using Python's ConfigParser_ (`syntax documentation`_,
+parsed using Python's RawConfigParser_ (`syntax documentation`_,
 interpolation is turned off).  Your config file will look something
 like::
 
@@ -140,8 +140,8 @@ wking@drexel.edu
 .. _wtk overlay: http://blog.tremily.us/posts/Gentoo_overlay
 .. _Git: http://git-scm.com/
 .. _homepage: http://blog.tremily.us/posts/update-copyright/
-.. _ConfigParser:
-  http://docs.python.org/dev/library/configparser.html#configparser.ConfigParser
+.. _RawConfigParser:
+  http://docs.python.org/dev/library/configparser.html#configparser.RawConfigParser
 .. _syntax documentation:
   http://docs.python.org/dev/library/configparser.html#supported-ini-file-structure
 .. _GNU General Public License Version 3: http://www.gnu.org/licenses/gpl.html
