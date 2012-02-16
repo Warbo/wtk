@@ -59,7 +59,7 @@ if __name__ == '__main__':
                  action='count', help='Increment verbosity')
     options,args = p.parse_args()
 
-    _LOG.setLevel(max(0, _logging.ERROR - 10*options.verbose))
+    _LOG.setLevel(max(_logging.DEBUG, _logging.ERROR - 10*options.verbose))
 
     project = Project()
     project.load_config(open(options.config, 'r'))
