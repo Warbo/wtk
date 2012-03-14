@@ -42,14 +42,18 @@ class GitBackend (_VCSBackend):
             ['git'] + list(args), cwd=self._root, unicode_output=True)
         return stdout.rstrip('\n')
 
-    def _years(self, filename=None):
+    def _dates(self, filename=None):
         args = ['log'] + self._year_format
         if filename is not None:
             args.extend(['--follow'] + [filename])
         output = self._git_cmd(*args)
         if self._version.startswith('1.5.'):
             output = '\n'.join([x.split()[0] for x in output.splitlines()])
-        years = set(int(line.split('-', 1)[0]) for line in output.splitlines())
+        return output.splitlines()
+
+    def _years(self, filename=None):
+        dates = self._dates(filename=filename)
+        years = set(int(line.split('-', 1)[0]) for date in dates)
         return years
 
     def _authors(self, filename=None):
