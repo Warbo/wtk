@@ -23,6 +23,7 @@ import os.path as _os_path
 import subprocess as _subprocess
 import sys as _sys
 
+from .. import LOG as LOG
 from ..utils import ENCODING as _ENCODING
 
 
@@ -39,6 +40,7 @@ def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     When ``unicode_output`` is ``True``, convert stdout and stdin
     strings to unicode before returing them.
     """
+    LOG.debug('{}$ {}'.format(cwd, args))
     try :
         if _POSIX:
             q = _subprocess.Popen(args, stdin=_subprocess.PIPE,
