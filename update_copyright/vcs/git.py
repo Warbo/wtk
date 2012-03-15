@@ -53,7 +53,7 @@ class GitBackend (_VCSBackend):
 
     def _years(self, filename=None):
         dates = self._dates(filename=filename)
-        years = set(int(line.split('-', 1)[0]) for date in dates)
+        years = set(int(date.split('-', 1)[0]) for date in dates)
         return years
 
     def _authors(self, filename=None):
