@@ -25,15 +25,6 @@ import os.path as _os_path
 from update_copyright import __version__
 
 
-classifiers = """\
-Development Status :: 3 - Alpha
-Intended Audience :: Developers
-Operating System :: OS Independent
-License :: OSI Approved :: GNU General Public License (GPL)
-Programming Language :: Python
-Topic :: Software Development
-"""
-
 _this_dir = _os_path.dirname(__file__)
 
 _setup(
@@ -48,7 +39,14 @@ _setup(
     description = __doc__,
     long_description=_codecs.open(
         _os_path.join(_this_dir, 'README'), 'r', encoding='utf-8').read(),
-    classifiers = filter(None, classifiers.split('\n')),
+    classifiers = [
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Operating System :: OS Independent',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Programming Language :: Python',
+        'Topic :: Software Development',
+        ],
     scripts = ['bin/update-copyright.py'],
     packages = ['update_copyright', 'update_copyright.vcs'],
     provides = ['update_copyright', 'update_copyright.vcs'],
