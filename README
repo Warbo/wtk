@@ -114,6 +114,17 @@ is replaced by a new blurb, which is automatically generated from your
 configured long copyright string, with author names and edit years
 extracted from the VCS data for that file.
 
+While the above works well for languages that use ``#`` to mark
+comment lines, it doesn't work for languages like C that use ``/*…*/``
+to mark comments.  There blurb-update algorithm also looks for any
+lines that begging with ``/* Copyright`` and replaces that line, and
+subsequent lines up to one beginning with `` */``, with a new blurb.
+
+Because I've never seen a file with *both* trigger lines, it shouldn't
+be a problem to run both against each of your versioned files.  If it
+is a problem for you, let me know, and we can add some configuration
+options to work around the problem.
+
 Incomplete VCS history
 ----------------------
 

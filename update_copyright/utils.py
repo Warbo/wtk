@@ -57,17 +57,26 @@ def short_author_formatter(copyright_year_string, authors):
 
 def copyright_string(original_year, final_year, authors, text, info={},
                      author_format_fn=long_author_formatter,
-                     formatter_kwargs={}, prefix='', wrap=True,
+                     formatter_kwargs={}, prefix=('', '', None), wrap=True,
                      **wrap_kwargs):
     """
     >>> print(copyright_string(original_year=2005, final_year=2005,
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
-    ...                        text=['BLURB',], prefix='# '
+    ...                        text=['BLURB',], prefix=('# ', '# ', None),
     ...                        )) # doctest: +REPORT_UDIFF
     # Copyright (C) 2005 A <a@a.com>
     #                    B <b@b.edu>
     #
     # BLURB
+    >>> print(copyright_string(original_year=2005, final_year=2009,
+    ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
+    ...                        text=['BLURB',], prefix=('/* ', ' * ', ' */'),
+    ...                        )) # doctest: +REPORT_UDIFF
+    /* Copyright (C) 2005-2009 A <a@a.com>
+     *                         B <b@b.edu>
+     *
+     * BLURB
+     */
     >>> print(copyright_string(original_year=2005, final_year=2009,
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=['BLURB',]
@@ -101,7 +110,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
     """
     for key in ['initial_indent', 'subsequent_indent']:
         if key not in wrap_kwargs:
-            wrap_kwargs[key] = prefix
+            wrap_kwargs[key] = prefix[1]
 
     if original_year == final_year:
         date_range = '%s' % original_year
@@ -112,7 +121,10 @@ def copyright_string(original_year, final_year, authors, text, info={},
     lines = author_format_fn(copyright_year_string, authors,
                              **formatter_kwargs)
     for i,line in enumerate(lines):
-        lines[i] = prefix + line
+        if i == 0:
+            lines[i] = prefix[0] + line
+        else:
+            lines[i] = prefix[1] + line
 
     for i,paragraph in enumerate(text):
         try:
@@ -132,10 +144,13 @@ def copyright_string(original_year, final_year, authors, text, info={},
     else:
         assert wrap_kwargs['subsequent_indent'] == '', \
             wrap_kwargs['subsequent_indent']
-    sep = '\n%s\n' % prefix.rstrip()
-    return sep.join(['\n'.join(lines)] + text)
+    sep = '\n{}\n'.format(prefix[1].rstrip())
+    ret = sep.join(['\n'.join(lines)] + text)
+    if prefix[2]:
+        ret += ('\n{}'.format(prefix[2]))
+    return ret
 
-def tag_copyright(contents, tag=None):
+def tag_copyright(contents, prefix=('# ', '# ', None), tag=None):
     """
     >>> contents = '''Some file
     ... bla bla
@@ -152,20 +167,45 @@ def tag_copyright(contents, tag=None):
     (copyright ends)
     bla bla bla
     <BLANKLINE>
+    >>> contents = '''Some file
+    ... bla bla
+    ... /* Copyright (copyright begins)
+    ...  * (copyright continues)
+    ...  *
+    ...  * bla bla bla
+    ...  */
+    ... (copyright ends)
+    ... bla bla bla
+    ... '''
+    >>> print tag_copyright(
+    ...     contents, prefix=('/* ', ' * ', ' */'), tag='-xyz-CR-zyx-')
+    Some file
+    bla bla
+    -xyz-CR-zyx-
+    (copyright ends)
+    bla bla bla
+    <BLANKLINE>
     """
     lines = []
     incopy = False
+    start = prefix[0] + 'Copyright'
+    middle = prefix[1].rstrip()
+    end = prefix[2]
     for line in contents.splitlines():
-        if incopy == False and line.startswith('# Copyright'):
+        if not incopy and line.startswith(start):
             incopy = True
             lines.append(tag)
-        elif incopy == True and not line.startswith('#'):
+        elif incopy and not line.startswith(middle):
+            if end:
+                assert line.startswith(end), line
             incopy = False
-        if incopy == False:
+        if not incopy:
             lines.append(line.rstrip('\n'))
+        if incopy and end and line.startswith(end):
+            incopy = False
     return '\n'.join(lines)+'\n'
 
-def update_copyright(contents, tag=None, **kwargs):
+def update_copyright(contents, prefix=('# ', '# ', None), tag=None, **kwargs):
     """
     >>> contents = '''Some file
     ... bla bla
@@ -175,9 +215,9 @@ def update_copyright(contents, tag=None, **kwargs):
     ... (copyright ends)
     ... bla bla bla
     ... '''
-    >>> print update_copyright(contents, original_year=2008,
-    ...                        authors=['Jack', 'Jill'],
-    ...                        text=['BLURB',], prefix='# ', tag='--tag--'
+    >>> print update_copyright(
+    ...     contents, original_year=2008, authors=['Jack', 'Jill'],
+    ...     text=['BLURB',], prefix=('# ', '# ', None), tag='--tag--'
     ...     ) # doctest: +ELLIPSIS, +REPORT_UDIFF
     Some file
     bla bla
@@ -190,8 +230,8 @@ def update_copyright(contents, tag=None, **kwargs):
     <BLANKLINE>
     """
     current_year = _time.gmtime()[0]
-    string = copyright_string(final_year=current_year, **kwargs)
-    contents = tag_copyright(contents=contents, tag=tag)
+    string = copyright_string(final_year=current_year, prefix=prefix, **kwargs)
+    contents = tag_copyright(contents=contents, prefix=prefix, tag=tag)
     return contents.replace(tag, string)
 
 def get_contents(filename, unicode=False, encoding=None):

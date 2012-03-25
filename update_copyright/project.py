@@ -189,8 +189,13 @@ class Project (object):
         authors = self._vcs.authors(filename=filename)
         new_contents = _utils.update_copyright(
             contents=contents, original_year=original_year, authors=authors,
-            text=self._copyright, info=self._info(), prefix='# ',
+            text=self._copyright, info=self._info(), prefix=('# ', '# ', None),
             width=self._width, tag=self._copyright_tag)
+        new_contents = _utils.update_copyright(
+            contents=new_contents, original_year=original_year,
+            authors=authors, text=self._copyright, info=self._info(),
+            prefix=('/* ', ' * ', ' */'), width=self._width,
+            tag=self._copyright_tag)
         _utils.set_contents(
             filename=filename, contents=new_contents,
             original_contents=contents, unicode=True, encoding=self._encoding,
