@@ -18,6 +18,7 @@
 
 "Automatically update copyright blurbs in versioned source."
 
+import codecs as _codecs
 from distutils.core import setup as _setup
 import os.path as _os_path
 
@@ -45,7 +46,8 @@ _setup(
     license = 'GNU General Public License (GPL)',
     platforms = ['all'],
     description = __doc__,
-    long_description=open(_os_path.join(_this_dir, 'README'), 'r').read(),
+    long_description=_codecs.open(
+        _os_path.join(_this_dir, 'README'), 'r', encoding='utf-8').read(),
     classifiers = filter(None, classifiers.split('\n')),
     scripts = ['bin/update-copyright.py'],
     packages = ['update_copyright', 'update_copyright.vcs'],

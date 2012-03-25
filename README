@@ -1,3 +1,5 @@
+.. -*- coding: utf-8 -*-
+
 ``update-copyright`` is an automatic copyright updating tool.  I wrote
 the original for `Bugs Everywhere`_, but ended up copying it into a
 number of my projects.  Copying is bad, so here it is, split out as
@@ -118,7 +120,7 @@ While the above works well for languages that use ``#`` to mark
 comment lines, it doesn't work for languages like C that use ``/*…*/``
 to mark comments.  There blurb-update algorithm also looks for any
 lines that begging with ``/* Copyright`` and replaces that line, and
-subsequent lines up to one beginning with `` */``, with a new blurb.
+subsequent lines up to one beginning with `` */``, with a new blurb.
 
 Because I've never seen a file with *both* trigger lines, it shouldn't
 be a problem to run both against each of your versioned files.  If it
