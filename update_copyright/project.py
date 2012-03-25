@@ -251,26 +251,31 @@ class Project (object):
 
     def _ignored_file(self, filename):
         """
-        >>> ignored_paths = ['./a/', './b/']
-        >>> ignored_files = ['x', 'y']
-        >>> ignored_file('./a/z', ignored_paths, ignored_files, False, False)
+        >>> p = Project()
+        >>> p._ignored_paths = ['a', './b/']
+        >>> p._ignored_file('./a/')
         True
-        >>> ignored_file('./ab/z', ignored_paths, ignored_files, False, False)
-        False
-        >>> ignored_file('./ab/x', ignored_paths, ignored_files, False, False)
+        >>> p._ignored_file('b')
         True
-        >>> ignored_file('./ab/xy', ignored_paths, ignored_files, False, False)
+        >>> p._ignored_file('a/z')
+        True
+        >>> p._ignored_file('ab/z')
         False
-        >>> ignored_file('./z', ignored_paths, ignored_files, False, False)
+        >>> p._ignored_file('./ab/a')
+        False
+        >>> p._ignored_file('./z')
         False
         """
         filename = _os_path.relpath(filename, self._root)
         if self._ignored_paths is not None:
-            for path in self._ignored_paths:
-                if _fnmatch.fnmatch(filename, path):
-                    _LOG.debug('ignoring {} (matched {})'.format(
-                            filename, path))
-                    return True
+            base = filename
+            while base not in ['', '.', '..']:
+                for path in self._ignored_paths:
+                    if _fnmatch.fnmatch(base, _os_path.normpath(path)):
+                        _LOG.debug('ignoring {} (matched {})'.format(
+                                filename, path))
+                        return True
+                base = _os_path.split(base)[0]
         if self._vcs and not self._vcs.is_versioned(filename):
             _LOG.debug('ignoring {} (not versioned))'.format(filename))
             return True
