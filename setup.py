@@ -31,7 +31,7 @@ _setup(
     name='update-copyright',
     version=__version__,
     maintainer='W. Trevor King',
-    maintainer_email='wking@drexel.edu',
+    maintainer_email='wking@tremily.us',
     url='http://blog.tremily.us/posts/update-copyright/',
     download_url='http://git.tremily.us/?p=update-copyright.git;a=snapshot;h=v{};sf=tgz'.format(__version__),
     license = 'GNU General Public License (GPL)',
