@@ -162,6 +162,7 @@ def replace_aliases(authors, with_email=True, aliases=None):
     if aliases == None:
         aliases = ALIASES
     rev_aliases = reverse_aliases(aliases)
+    authors = list(authors)
     for i,author in enumerate(authors):
         if author in rev_aliases:
             authors[i] = rev_aliases[author]
