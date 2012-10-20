@@ -161,7 +161,7 @@ class Project (object):
             _aliases = parser.get('aliases', author)
             author = unicode(author, encoding)
             aliases[author] = set(
-                unicode(a.strip(), encoding) for a in _aliases.split(','))
+                unicode(a.strip(), encoding) for a in _aliases.split('|'))
         self._aliases = aliases
         if self._vcs is not None:
             self._vcs._aliases = self._aliases

@@ -156,7 +156,7 @@ add an `aliases`` section to your config file, where the option names
 are the canonical name of the ...?.  For example::
 
   [aliases]
-  John Doe <jdoe@a.com>: John Doe, jdoe, J. Doe <j@doe.net>
+  John Doe <jdoe@a.com>: John Doe | jdoe | J. Doe <j@doe.net>
 
 Testing
 =======
