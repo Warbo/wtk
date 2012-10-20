@@ -139,7 +139,7 @@ class Project (object):
         for path in parser.options('author-hacks'):
             authors = parser.get('author-hacks', path)
             author_hacks[tuple(path.split('/'))] = set(
-                unicode(a.strip(), encoding) for a in authors.split(','))
+                unicode(a.strip(), encoding) for a in authors.split('|'))
         self._author_hacks = author_hacks
         if self._vcs is not None:
             self._vcs._author_hacks = self._author_hacks

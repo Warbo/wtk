@@ -133,11 +133,11 @@ Incomplete VCS history
 Sometimes files have authors or alterations not recorded in a
 project's VCS history.  You can use the ``author-hacks`` section to
 add authors to a file, and the ``year-hacks`` section to adjust the
-files original year.  Author names should be comma-separated.  For
+files original year.  Author names should be pipe-separated.  For
 example::
 
   [author-hacks]
-  path/to/file: John Doe <jdoe@a.com>, Jane Smith <jsmith@b.net>
+  path/to/file: John Doe <jdoe@a.com> | Jane Smith <jsmith@b.net>
 
   [year-hacks]
   path/to/another/file: 2009
