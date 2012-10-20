@@ -59,6 +59,7 @@ class Project (object):
 
     def load_config(self, stream):
         parser = _configparser.RawConfigParser()
+        parser.optionxform = str
         parser.readfp(stream)
         for section in parser.sections():
             clean_section = section.replace('-', '_')
