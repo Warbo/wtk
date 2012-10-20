@@ -47,8 +47,9 @@ class VCSBackend (object):
             years.update(self._year_hacks.values())
         else:
             filename = _os_path.relpath(filename, self._root)
-            if _utils.splitpath(filename) in self._year_hacks:
-                years.add(self._year_hacks[_utils.splitpath(filename)])
+            splitpath = _utils.splitpath(filename)
+            if splitpath in self._year_hacks:
+                years.add(self._year_hacks[splitpath])
         years = sorted(years)
         return years[0]
 
