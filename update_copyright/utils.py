@@ -127,7 +127,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
 
     for i,paragraph in enumerate(text):
         try:
-            text[i] = paragraph.format(info)
+            text[i] = paragraph.format(**info)
         except ValueError as e:
             _LOG.error(
                 "{}: can't format {} with {}".format(e, paragraph, info))

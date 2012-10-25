@@ -240,7 +240,7 @@ class Project (object):
             author_format_fn=_utils.short_author_formatter, wrap=False,
             ).split('\n\n')
         for p in paragraphs:
-            lines.append("        '{}'.format(info),".format(
+            lines.append("        '{}'.format(**info),".format(
                     p.replace("'", r"\'")))
         lines.extend([
                 '        ]',
