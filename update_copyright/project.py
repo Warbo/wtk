@@ -101,14 +101,18 @@ class Project (object):
 
     def _load_copyright_conf(self, parser):
         try:
-            self._copyright = parser.get('copyright', 'long').splitlines()
+            self._copyright = self._split_paragraphs(
+                parser.get('copyright', 'long'))
         except _configparser.NoOptionError:
             pass
         try:
-            self._short_copyright = parser.get(
-                'copyright', 'short').splitlines()
+            self._short_copyright = self._split_paragraphs(
+                parser.get('copyright', 'short'))
         except _configparser.NoOptionError:
             pass
+
+    def _split_paragraphs(self, text):
+        return [p.strip() for p in text.split('\n\n')]
 
     def _load_files_conf(self, parser):
         try:
