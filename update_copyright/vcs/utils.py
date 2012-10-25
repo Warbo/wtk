@@ -127,7 +127,7 @@ def reverse_aliases(aliases):
     ...     }
     >>> r = reverse_aliases(aliases)
     >>> for item in sorted(r.items()):
-    ...     print item
+    ...     print(item)
     ('Anonymous <a@a.com>', None)
     ('J', 'J Doe <jdoe@a.com>')
     ('Jingly <jjjs@b.edu>', 'JJJ Smith <jjjs@a.com>')
@@ -166,9 +166,12 @@ def replace_aliases(authors, with_email=True, aliases=None):
     for i,author in enumerate(authors):
         if author in rev_aliases:
             authors[i] = rev_aliases[author]
-    authors = sorted(list(set(authors)))
-    if None in authors:
+    authors = set(authors)
+    try:
         authors.remove(None)
+    except KeyError:
+        pass
+    authors = sorted(authors)
     if with_email == False:
         authors = strip_email(*authors)
     return authors

@@ -17,7 +17,7 @@
 
 """Project-specific configuration."""
 
-import ConfigParser as _configparser
+import configparser as _configparser
 import fnmatch as _fnmatch
 import os.path as _os_path
 import sys
@@ -55,7 +55,7 @@ class Project (object):
         self._width = 79
 
         # unlikely to occur in the wild :p
-        self._copyright_tag = u'-xyz-COPY' + u'-RIGHT-zyx-'
+        self._copyright_tag = '-xyz-COPY' + '-RIGHT-zyx-'
 
     def load_config(self, stream):
         parser = _configparser.RawConfigParser()
@@ -175,8 +175,8 @@ class Project (object):
     def update_authors(self, dry_run=False):
         _LOG.info('update AUTHORS')
         authors = self._vcs.authors()
-        new_contents = u'{} was written by:\n{}\n'.format(
-            self._name, u'\n'.join(authors))
+        new_contents = '{} was written by:\n{}\n'.format(
+            self._name, '\n'.join(authors))
         _utils.set_contents(
             _os_path.join(self._root, 'AUTHORS'),
             new_contents, unicode=True, encoding=self._encoding,
@@ -222,35 +222,35 @@ class Project (object):
             _utils.copyright_string(
                 original_year=original_year, final_year=current_year,
                 authors=authors, text=self._copyright, info=self._info(),
-                prefix=u'# ', width=self._width),
-            u'', u'import textwrap as _textwrap', u'', u'',
-            u'LICENSE = """',
+                prefix='# ', width=self._width),
+            '', 'import textwrap as _textwrap', '', '',
+            'LICENSE = """',
             _utils.copyright_string(
                 original_year=original_year, final_year=current_year,
                 authors=authors, text=self._copyright, info=self._info(),
-                prefix=u'', width=self._width),
-            u'""".strip()',
-            u'',
-            u'def short_license(info, wrap=True, **kwargs):',
-            u'    paragraphs = [',
+                prefix='', width=self._width),
+            '""".strip()',
+            '',
+            'def short_license(info, wrap=True, **kwargs):',
+            '    paragraphs = [',
             ]
         paragraphs = _utils.copyright_string(
             original_year=original_year, final_year=current_year,
             authors=authors, text=self._short_copyright, info=self._info(),
             author_format_fn=_utils.short_author_formatter, wrap=False,
-            ).split(u'\n\n')
+            ).split('\n\n')
         for p in paragraphs:
-            lines.append(u"        '{}' % info,".format(
-                    p.replace(u"'", ur"\'")))
+            lines.append("        '{}'.format(info),".format(
+                    p.replace("'", r"\'")))
         lines.extend([
-                u'        ]',
-                u'    if wrap:',
-                u'        for i,p in enumerate(paragraphs):',
-                u'            paragraphs[i] = _textwrap.fill(p, **kwargs)',
-                ur"    return '\n\n'.join(paragraphs)",
-                u'',  # for terminal endline
+                '        ]',
+                '    if wrap:',
+                '        for i,p in enumerate(paragraphs):',
+                '            paragraphs[i] = _textwrap.fill(p, **kwargs)',
+                r"    return '\n\n'.join(paragraphs)",
+                '',  # for terminal endline
                 ])
-        new_contents = u'\n'.join(lines)
+        new_contents = '\n'.join(lines)
         _utils.set_contents(
             filename=self._pyfile, contents=new_contents, unicode=True,
             encoding=self._encoding, dry_run=dry_run)

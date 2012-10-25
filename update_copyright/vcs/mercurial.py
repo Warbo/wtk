@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import
 
-import StringIO as _StringIO
+import io as _io
 import os as _os
 import sys as _sys
 
@@ -40,8 +40,8 @@ class MercurialBackend (_VCSBackend):
         cwd = _os.getcwd()
         stdout = _sys.stdout
         stderr = _sys.stderr
-        tmp_stdout = _StringIO.StringIO()
-        tmp_stderr = _StringIO.StringIO()
+        tmp_stdout = _io.StringIO()
+        tmp_stderr = _io.StringIO()
         _sys.stdout = tmp_stdout
         _sys.stderr = tmp_stderr
         _os.chdir(self._root)

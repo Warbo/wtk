@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along with
 # update-copyright.  If not, see <http://www.gnu.org/licenses/>.
 
-import StringIO as _StringIO
+import io as _io
 import os as _os
 
 import bzrlib as _bzrlib
@@ -66,7 +66,7 @@ class BazaarBackend (_VCSBackend):
 
     def _years(self, filename=None):
         cmd = _bzrlib_builtins.cmd_log()
-        cmd.outf = _StringIO.StringIO()
+        cmd.outf = _io.StringIO()
         kwargs = {'log_format':_YearLogFormatter, 'levels':0}
         if filename is not None:
             kwargs['file_list'] = [filename]
@@ -76,7 +76,7 @@ class BazaarBackend (_VCSBackend):
 
     def _authors(self, filename=None):
         cmd = _bzrlib_builtins.cmd_log()
-        cmd.outf = _StringIO.StringIO()
+        cmd.outf = _io.StringIO()
         kwargs = {'log_format':_AuthorLogFormatter, 'levels':0}
         if filename is not None:
             kwargs['file_list'] = [filename]
@@ -86,6 +86,6 @@ class BazaarBackend (_VCSBackend):
 
     def is_versioned(self, filename):
         cmd = _bzrlib_builtins.cmd_log()
-        cmd.outf = StringIO.StringIO()
+        cmd.outf = _io.StringIO()
         self._bzr_cmd(cmd=cmd, file_list=[filename])
         return True

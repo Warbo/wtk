@@ -32,9 +32,9 @@ ENCODING = _locale.getpreferredencoding() or _sys.getdefaultencoding()
 
 def long_author_formatter(copyright_year_string, authors):
     """
-    >>> print '\\n'.join(long_author_formatter(
+    >>> print('\\n'.join(long_author_formatter(
     ...     copyright_year_string='Copyright (C) 1990-2010',
-    ...     authors=['Jack', 'Jill', 'John']))
+    ...     authors=['Jack', 'Jill', 'John'])))
     Copyright (C) 1990-2010 Jack
                             Jill
                             John
@@ -46,9 +46,9 @@ def long_author_formatter(copyright_year_string, authors):
 
 def short_author_formatter(copyright_year_string, authors):
     """
-    >>> print '\\n'.join(short_author_formatter(
+    >>> print('\\n'.join(short_author_formatter(
     ...     copyright_year_string='Copyright (C) 1990-2010',
-    ...     authors=['Jack', 'Jill', 'John']*5))
+    ...     authors=['Jack', 'Jill', 'John']*5)))
     Copyright (C) 1990-2010 Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John
     """
     blurb = '%s %s' % (copyright_year_string, ', '.join(authors))
@@ -159,7 +159,7 @@ def tag_copyright(contents, prefix=('# ', '# ', None), tag=None):
     ... (copyright ends)
     ... bla bla bla
     ... '''
-    >>> print tag_copyright(contents, tag='-xyz-CR-zyx-')
+    >>> print(tag_copyright(contents, tag='-xyz-CR-zyx-'))
     Some file
     bla bla
     -xyz-CR-zyx-
@@ -176,8 +176,8 @@ def tag_copyright(contents, prefix=('# ', '# ', None), tag=None):
     ... (copyright ends)
     ... bla bla bla
     ... '''
-    >>> print tag_copyright(
-    ...     contents, prefix=('/* ', ' * ', ' */'), tag='-xyz-CR-zyx-')
+    >>> print(tag_copyright(
+    ...     contents, prefix=('/* ', ' * ', ' */'), tag='-xyz-CR-zyx-'))
     Some file
     bla bla
     -xyz-CR-zyx-
@@ -214,10 +214,10 @@ def update_copyright(contents, prefix=('# ', '# ', None), tag=None, **kwargs):
     ... (copyright ends)
     ... bla bla bla
     ... '''
-    >>> print update_copyright(
+    >>> print(update_copyright(
     ...     contents, original_year=2008, authors=['Jack', 'Jill'],
     ...     text=['BLURB',], prefix=('# ', '# ', None), tag='--tag--'
-    ...     ) # doctest: +ELLIPSIS, +REPORT_UDIFF
+    ...     )) # doctest: +ELLIPSIS, +REPORT_UDIFF
     Some file
     bla bla
     # Copyright (C) 2008-... Jack
@@ -257,7 +257,7 @@ def set_contents(filename, contents, original_contents=None, unicode=False,
             _LOG.info('creating {}'.format(filename))
         else:
             _LOG.info('updating {}'.format(filename))
-            _LOG.debug(u'\n'.join(
+            _LOG.debug('\n'.join(
                     _difflib.unified_diff(
                         original_contents.splitlines(), contents.splitlines(),
                         fromfile=_os_path.normpath(
