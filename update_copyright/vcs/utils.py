@@ -59,9 +59,9 @@ def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
         if encoding is None:
             encoding = _ENCODING
         if stdout is not None:
-            stdout = unicode(stdout, encoding)
+            stdout = str(stdout, encoding)
         if stderr is not None:
-            stderr = unicode(stderr, encoding)
+            stderr = str(stderr, encoding)
     if status not in expect:
         raise ValueError([args, status, stdout, stderr])
     return status, stdout, stderr

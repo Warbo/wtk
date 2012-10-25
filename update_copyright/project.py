@@ -139,7 +139,7 @@ class Project (object):
         for path in parser.options('author-hacks'):
             authors = parser.get('author-hacks', path)
             author_hacks[tuple(path.split('/'))] = set(
-                unicode(a.strip(), encoding) for a in authors.split('|'))
+                str(a.strip(), encoding) for a in authors.split('|'))
         self._author_hacks = author_hacks
         if self._vcs is not None:
             self._vcs._author_hacks = self._author_hacks
@@ -159,9 +159,9 @@ class Project (object):
         aliases = {}
         for author in parser.options('aliases'):
             _aliases = parser.get('aliases', author)
-            author = unicode(author, encoding)
+            author = str(author, encoding)
             aliases[author] = set(
-                unicode(a.strip(), encoding) for a in _aliases.split('|'))
+                str(a.strip(), encoding) for a in _aliases.split('|'))
         self._aliases = aliases
         if self._vcs is not None:
             self._vcs._aliases = self._aliases
