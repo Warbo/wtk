@@ -39,7 +39,7 @@ def long_author_formatter(copyright_year_string, authors):
                             Jill
                             John
     """
-    lines = ['%s %s' % (copyright_year_string, authors[0])]
+    lines = ['{} {}'.format(copyright_year_string, authors[0])]
     for author in authors[1:]:
         lines.append(' '*(len(copyright_year_string)+1) + author)
     return lines
@@ -51,7 +51,7 @@ def short_author_formatter(copyright_year_string, authors):
     ...     authors=['Jack', 'Jill', 'John']*5)))
     Copyright (C) 1990-2010 Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John, Jack, Jill, John
     """
-    blurb = '%s %s' % (copyright_year_string, ', '.join(authors))
+    blurb = '{} {}'.format(copyright_year_string, ', '.join(authors))
     return [blurb]
 
 def copyright_string(original_year, final_year, authors, text, info={},
@@ -86,7 +86,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
     BLURB
     >>> print(copyright_string(original_year=2005, final_year=2005,
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
-    ...                        text=['This file is part of %(program)s.',],
+    ...                        text=['This file is part of {program}.',],
     ...                        author_format_fn=short_author_formatter,
     ...                        info={'program':'update-copyright'},
     ...                        width=25,
@@ -97,7 +97,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
     update-copyright.
     >>> print(copyright_string(original_year=2005, final_year=2005,
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
-    ...                        text=[('This file is part of %(program)s.  '*3
+    ...                        text=[('This file is part of {program}.  '*3
     ...                               ).strip(),],
     ...                        info={'program':'update-copyright'},
     ...                        author_format_fn=short_author_formatter,
@@ -112,10 +112,10 @@ def copyright_string(original_year, final_year, authors, text, info={},
             wrap_kwargs[key] = prefix[1]
 
     if original_year == final_year:
-        date_range = '%s' % original_year
+        date_range = str(original_year)
     else:
-        date_range = '%s-%s' % (original_year, final_year)
-    copyright_year_string = 'Copyright (C) %s' % date_range
+        date_range = '{}-{}'.format(original_year, final_year)
+    copyright_year_string = 'Copyright (C) {}'.format(date_range)
 
     lines = author_format_fn(copyright_year_string, authors,
                              **formatter_kwargs)
@@ -127,7 +127,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
 
     for i,paragraph in enumerate(text):
         try:
-            text[i] = paragraph % info
+            text[i] = paragraph.format(info)
         except ValueError as e:
             _LOG.error(
                 "{}: can't format {} with {}".format(e, paragraph, info))
