@@ -222,13 +222,13 @@ class Project (object):
             _utils.copyright_string(
                 original_year=original_year, final_year=current_year,
                 authors=authors, text=self._copyright, info=self._info(),
-                prefix='# ', width=self._width),
+                prefix=('# ', '# ', None), width=self._width),
             '', 'import textwrap as _textwrap', '', '',
             'LICENSE = """',
             _utils.copyright_string(
                 original_year=original_year, final_year=current_year,
                 authors=authors, text=self._copyright, info=self._info(),
-                prefix='', width=self._width),
+                prefix=('', '', None), width=self._width),
             '""".strip()',
             '',
             'def short_license(info, wrap=True, **kwargs):',
