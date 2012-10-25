@@ -28,11 +28,11 @@ from . import utils as _utils
 from .vcs.git import GitBackend as _GitBackend
 try:
     from .vcs.bazaar import BazaarBackend as _BazaarBackend
-except ImportError, _bazaar_import_error:
+except ImportError as _bazaar_import_error:
     _BazaarBackend = None
 try:
     from .vcs.mercurial import MercurialBackend as _MercurialBackend
-except ImportError, _mercurial_import_error:
+except ImportError as _mercurial_import_error:
     _MercurialBackend = None
 
 
@@ -65,7 +65,7 @@ class Project (object):
             clean_section = section.replace('-', '_')
             try:
                 loader = getattr(self, '_load_{}_conf'.format(clean_section))
-            except AttributeError, e:
+            except AttributeError as e:
                 _LOG.error('invalid {} section'.format(section))
                 raise
             loader(parser=parser)

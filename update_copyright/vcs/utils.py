@@ -51,7 +51,7 @@ def invoke(args, stdin=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
             q = _subprocess.Popen(args, stdin=_subprocess.PIPE,
                                   stdout=stdout, stderr=stderr, shell=True,
                                   cwd=cwd)
-    except OSError, e:
+    except OSError as e:
         raise ValueError([args, e])
     stdout,stderr = q.communicate(input=stdin)
     status = q.wait()

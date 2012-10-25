@@ -128,11 +128,11 @@ def copyright_string(original_year, final_year, authors, text, info={},
     for i,paragraph in enumerate(text):
         try:
             text[i] = paragraph % info
-        except ValueError, e:
+        except ValueError as e:
             _LOG.error(
                 "{}: can't format {} with {}".format(e, paragraph, info))
             raise
-        except TypeError, e:
+        except TypeError as e:
             _LOG.error(
                 ('{}: copright text must be a list of paragraph strings, '
                  'not {}').format(e, repr(text)))
