@@ -39,33 +39,43 @@ from update_copyright.project import Project
 
 
 if __name__ == '__main__':
-    import optparse
+    import argparse
     import sys
 
-    usage = "%prog [options] [file ...]"
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        '--config', dest='config', default='.update-copyright.conf',
+        metavar='PATH', help='path to project config file')
+    p.add_argument(
+        '--no-authors', dest='authors', default=True, action='store_const',
+        const=False, help="Don't generate AUTHORS")
+    p.add_argument(
+        '--no-files', dest='files', default=True, action='store_const',
+        const=False, help="Don't update file copyrights")
+    p.add_argument(
+        '--no-pyfile', dest='pyfile', default=True, action='store_const',
+        const=False, help="Don't update the pyfile")
+    p.add_argument(
+        '--dry-run', dest='dry_run', default=False, action='store_const',
+        const=True, help="Don't make any changes")
+    p.add_argument(
+        '-v', '--verbose', dest='verbose', default=0, action='count',
+        help='Increment verbosity')
+    p.add_argument(
+        'file', nargs='*',
+        help=(
+            'Explicitly select files to update (otherwise update the whole '
+            'project)'))
 
-    p = optparse.OptionParser(usage=usage, description=__doc__)
-    p.add_option('--config', dest='config', default='.update-copyright.conf',
-                 metavar='PATH', help='path to project config file (%default)')
-    p.add_option('--no-authors', dest='authors', default=True,
-                 action='store_false', help="Don't generate AUTHORS")
-    p.add_option('--no-files', dest='files', default=True,
-                 action='store_false', help="Don't update file copyrights")
-    p.add_option('--no-pyfile', dest='pyfile', default=True,
-                 action='store_false', help="Don't update the pyfile")
-    p.add_option('--dry-run', dest='dry_run', default=False,
-                 action='store_true', help="Don't make any changes")
-    p.add_option('-v', '--verbose', dest='verbose', default=0,
-                 action='count', help='Increment verbosity')
-    options,args = p.parse_args()
+    args = p.parse_args()
 
-    _LOG.setLevel(max(_logging.DEBUG, _logging.ERROR - 10*options.verbose))
+    _LOG.setLevel(max(_logging.DEBUG, _logging.ERROR - 10*args.verbose))
 
-    project = Project(root=_os_path.dirname(_os_path.abspath(options.config)))
-    project.load_config(open(options.config, 'r'))
-    if options.authors:
-        project.update_authors(dry_run=options.dry_run)
-    if options.files:
-        project.update_files(files=args, dry_run=options.dry_run)
-    if options.pyfile:
-        project.update_pyfile(dry_run=options.dry_run)
+    project = Project(root=_os_path.dirname(_os_path.abspath(args.config)))
+    project.load_config(open(args.config, 'r'))
+    if args.authors:
+        project.update_authors(dry_run=args.dry_run)
+    if args.files:
+        project.update_files(files=args.file, dry_run=args.dry_run)
+    if args.pyfile:
+        project.update_pyfile(dry_run=args.dry_run)
