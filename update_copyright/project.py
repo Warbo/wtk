@@ -136,14 +136,12 @@ class Project (object):
         else:
             self._pyfile = _os_path.join(self._root, pyfile)
 
-    def _load_author_hacks_conf(self, parser, encoding=None):
-        if encoding is None:
-            encoding = self._encoding or _utils.ENCODING
+    def _load_author_hacks_conf(self, parser):
         author_hacks = {}
         for path in parser.options('author-hacks'):
             authors = parser.get('author-hacks', path)
             author_hacks[tuple(path.split('/'))] = set(
-                str(a.strip(), encoding) for a in authors.split('|'))
+                a.strip() for a in authors.split('|'))
         self._author_hacks = author_hacks
         if self._vcs is not None:
             self._vcs._author_hacks = self._author_hacks
@@ -157,15 +155,12 @@ class Project (object):
         if self._vcs is not None:
             self._vcs._year_hacks = self._year_hacks
 
-    def _load_aliases_conf(self, parser, encoding=None):
-        if encoding is None:
-            encoding = self._encoding or _utils.ENCODING
+    def _load_aliases_conf(self, parser):
         aliases = {}
         for author in parser.options('aliases'):
             _aliases = parser.get('aliases', author)
-            author = str(author, encoding)
             aliases[author] = set(
-                str(a.strip(), encoding) for a in _aliases.split('|'))
+                a.strip() for a in _aliases.split('|'))
         self._aliases = aliases
         if self._vcs is not None:
             self._vcs._aliases = self._aliases
