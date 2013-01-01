@@ -116,11 +116,11 @@ class Project (object):
 
     def _load_files_conf(self, parser):
         try:
-            self.with_authors = parser.get('files', 'authors')
+            self.with_authors = parser.getboolean('files', 'authors')
         except _configparser.NoOptionError:
             pass
         try:
-            self.with_files = parser.get('files', 'files')
+            self.with_files = parser.getboolean('files', 'files')
         except _configparser.NoOptionError:
             pass
         try:
