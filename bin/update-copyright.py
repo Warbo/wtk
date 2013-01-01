@@ -73,9 +73,9 @@ if __name__ == '__main__':
 
     project = Project(root=_os_path.dirname(_os_path.abspath(args.config)))
     project.load_config(open(args.config, 'r'))
-    if args.authors:
+    if args.authors and project.with_authors:
         project.update_authors(dry_run=args.dry_run)
-    if args.files:
+    if args.files and project.with_files:
         project.update_files(files=args.file, dry_run=args.dry_run)
-    if args.pyfile:
+    if args.pyfile and project._pyfile:
         project.update_pyfile(dry_run=args.dry_run)
