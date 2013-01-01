@@ -34,6 +34,7 @@ file in your project root.
 import logging as _logging
 import os.path as _os_path
 
+from update_copyright import __version__
 from update_copyright import LOG as _LOG
 from update_copyright.project import Project
 
@@ -43,6 +44,9 @@ if __name__ == '__main__':
     import sys
 
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        '--version', action='version',
+        version='%(prog)s {}'.format(__version__))
     p.add_argument(
         '--config', dest='config', default='.update-copyright.conf',
         metavar='PATH', help='path to project config file')
