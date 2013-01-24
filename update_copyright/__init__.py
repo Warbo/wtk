@@ -29,7 +29,7 @@ versions, so here it is as a stand-alone package.
 from .log import get_basic_logger as _get_basic_logger
 
 
-__version__ = '0.4'
+__version__ = '0.5'
 
 
 LOG = _get_basic_logger(name='update-copyright')
