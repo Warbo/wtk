@@ -41,7 +41,7 @@ class VCSBackend (object):
     def _years(self, filename=None):
         raise NotImplementedError()
 
-    def original_year(self, filename=None):
+    def years(self, filename=None):
         years = self._years(filename=filename)
         if filename is None:
             years.update(self._year_hacks.values())
@@ -51,7 +51,7 @@ class VCSBackend (object):
             if splitpath in self._year_hacks:
                 years.add(self._year_hacks[splitpath])
         years = sorted(years)
-        return years[0]
+        return years
 
     def _authors(self, filename=None):
         raise NotImplementedError()

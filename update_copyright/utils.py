@@ -22,7 +22,6 @@ import os as _os
 import os.path as _os_path
 import sys as _sys
 import textwrap as _textwrap
-import time as _time
 
 from . import LOG as _LOG
 
@@ -54,12 +53,12 @@ def short_author_formatter(copyright_year_string, authors):
     blurb = '{} {}'.format(copyright_year_string, ', '.join(authors))
     return [blurb]
 
-def copyright_string(original_year, final_year, authors, text, info={},
+def copyright_string(years, authors, text, info={},
                      author_format_fn=long_author_formatter,
                      formatter_kwargs={}, prefix=('', '', None), wrap=True,
                      **wrap_kwargs):
     """
-    >>> print(copyright_string(original_year=2005, final_year=2005,
+    >>> print(copyright_string(years=[2005],
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=['BLURB',], prefix=('# ', '# ', None),
     ...                        )) # doctest: +REPORT_UDIFF
@@ -67,7 +66,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
     #                    B <b@b.edu>
     #
     # BLURB
-    >>> print(copyright_string(original_year=2005, final_year=2009,
+    >>> print(copyright_string(years=[2005, 2009],
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=['BLURB',], prefix=('/* ', ' * ', ' */'),
     ...                        )) # doctest: +REPORT_UDIFF
@@ -76,7 +75,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
      *
      * BLURB
      */
-    >>> print(copyright_string(original_year=2005, final_year=2009,
+    >>> print(copyright_string(years=[2005, 2009],
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=['BLURB',]
     ...                        )) # doctest: +REPORT_UDIFF
@@ -84,7 +83,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
                             B <b@b.edu>
     <BLANKLINE>
     BLURB
-    >>> print(copyright_string(original_year=2005, final_year=2005,
+    >>> print(copyright_string(years=[2005],
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=['This file is part of {program}.',],
     ...                        author_format_fn=short_author_formatter,
@@ -95,7 +94,7 @@ def copyright_string(original_year, final_year, authors, text, info={},
     <BLANKLINE>
     This file is part of
     update-copyright.
-    >>> print(copyright_string(original_year=2005, final_year=2005,
+    >>> print(copyright_string(years=[2005],
     ...                        authors=['A <a@a.com>', 'B <b@b.edu>'],
     ...                        text=[('This file is part of {program}.  '*3
     ...                               ).strip(),],
@@ -111,9 +110,13 @@ def copyright_string(original_year, final_year, authors, text, info={},
         if key not in wrap_kwargs:
             wrap_kwargs[key] = prefix[1]
 
-    if original_year == final_year:
-        date_range = str(original_year)
+    if not years:
+        raise ValueError('empty years argument: {!r}'.format(years))
+    elif len(years) == 1:
+        date_range = str(years[0])
     else:
+        original_year = min(years)
+        final_year = max(years)
         date_range = '{}-{}'.format(original_year, final_year)
     copyright_year_string = 'Copyright (C) {}'.format(date_range)
 
@@ -215,21 +218,20 @@ def update_copyright(contents, prefix=('# ', '# ', None), tag=None, **kwargs):
     ... bla bla bla
     ... '''
     >>> print(update_copyright(
-    ...     contents, original_year=2008, authors=['Jack', 'Jill'],
+    ...     contents, years=[2008], authors=['Jack', 'Jill'],
     ...     text=['BLURB',], prefix=('# ', '# ', None), tag='--tag--'
     ...     )) # doctest: +ELLIPSIS, +REPORT_UDIFF
     Some file
     bla bla
-    # Copyright (C) 2008-... Jack
-    #                         Jill
+    # Copyright (C) 2008 Jack
+    #                    Jill
     #
     # BLURB
     (copyright ends)
     bla bla bla
     <BLANKLINE>
     """
-    current_year = _time.gmtime()[0]
-    string = copyright_string(final_year=current_year, prefix=prefix, **kwargs)
+    string = copyright_string(prefix=prefix, **kwargs)
     contents = tag_copyright(contents=contents, prefix=prefix, tag=tag)
     return contents.replace(tag, string)
 

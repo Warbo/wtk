@@ -185,14 +185,14 @@ class Project (object):
         _LOG.info('update {}'.format(filename))
         contents = _utils.get_contents(
             filename=filename, unicode=True, encoding=self._encoding)
-        original_year = self._vcs.original_year(filename=filename)
+        years = self._vcs.years(filename=filename)
         authors = self._vcs.authors(filename=filename)
         new_contents = _utils.update_copyright(
-            contents=contents, original_year=original_year, authors=authors,
+            contents=contents, years=years, authors=authors,
             text=self._copyright, info=self._info(), prefix=('# ', '# ', None),
             width=self._width, tag=self._copyright_tag)
         new_contents = _utils.update_copyright(
-            contents=new_contents, original_year=original_year,
+            contents=new_contents, years=years,
             authors=authors, text=self._copyright, info=self._info(),
             prefix=('/* ', ' * ', ' */'), width=self._width,
             tag=self._copyright_tag)
@@ -215,28 +215,27 @@ class Project (object):
             return
         _LOG.info('update pyfile at {}'.format(self._pyfile))
         current_year = _time.gmtime()[0]
-        original_year = self._vcs.original_year()
+        years = self._vcs.years()
         authors = self._vcs.authors()
         lines = [
             _utils.copyright_string(
-                original_year=original_year, final_year=current_year,
-                authors=authors, text=self._copyright, info=self._info(),
-                prefix=('# ', '# ', None), width=self._width),
+                years=years, authors=authors, text=self._copyright,
+                info=self._info(), prefix=('# ', '# ', None),
+                width=self._width),
             '', 'import textwrap as _textwrap', '', '',
             'LICENSE = """',
             _utils.copyright_string(
-                original_year=original_year, final_year=current_year,
-                authors=authors, text=self._copyright, info=self._info(),
-                prefix=('', '', None), width=self._width),
+                years=years, authors=authors, text=self._copyright,
+                info=self._info(), prefix=('', '', None), width=self._width),
             '""".strip()',
             '',
             'def short_license(info, wrap=True, **kwargs):',
             '    paragraphs = [',
             ]
         paragraphs = _utils.copyright_string(
-            original_year=original_year, final_year=current_year,
-            authors=authors, text=self._short_copyright, info=self._info(),
-            author_format_fn=_utils.short_author_formatter, wrap=False,
+            years=years, authors=authors, text=self._short_copyright,
+            info=self._info(), author_format_fn=_utils.short_author_formatter,
+            wrap=False,
             ).split('\n\n')
         for p in paragraphs:
             lines.append("        '{}'.format(**info),".format(
