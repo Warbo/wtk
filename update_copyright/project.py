@@ -27,10 +27,6 @@ from . import LOG as _LOG
 from . import utils as _utils
 from .vcs.git import GitBackend as _GitBackend
 try:
-    from .vcs.bazaar import BazaarBackend as _BazaarBackend
-except ImportError as _bazaar_import_error:
-    _BazaarBackend = None
-try:
     from .vcs.mercurial import MercurialBackend as _MercurialBackend
 except ImportError as _mercurial_import_error:
     _MercurialBackend = None
@@ -88,10 +84,6 @@ class Project (object):
                 }
             if vcs == 'Git':
                 self._vcs = _GitBackend(**kwargs)
-            elif vcs == 'Bazaar':
-                if _BazaarBackend is None:
-                    raise _bazaar_import_error
-                self._vcs = _BazaarBackend(**kwargs)
             elif vcs == 'Mercurial':
                 if _MercurialBackend is None:
                     raise _mercurial_import_error
