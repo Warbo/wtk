@@ -151,7 +151,7 @@ Aliases
 
 Occasionally names or email addresses used when committing to the VCS
 will go out of date.  Some VCSs have a built-in method of dealing with
-this (e.g. Git's .mailmap_).  For those without such a VCS, you can
+this (e.g. Git's `.mailmap`_).  For those without such a VCS, you can
 add an `aliases`` section to your config file, where the option names
 are the canonical name of the ...?.  For example::
 
