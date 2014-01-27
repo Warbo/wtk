@@ -24,11 +24,10 @@ my `wtk overlay`_.  Install with::
 Dependencies
 ------------
 
-``update-copyright`` is a simple package with few external
-dependencies.  The only external dependencies are the Python packages
-behind Python-based version control systems.  If you're using those
-VCSs, you've already installed the packages.  If you're not using
-those VCSs, you don't need the packages.
+``update-copyright`` is a simple package with no external dependencies
+outside of the VCS commands themselves (e.g. you need `git` in your
+`PATH` to use the Git_ backend, and `hg` in your `PATH` to use the
+Mercurial_ backend).
 
 Installing by hand
 ------------------
@@ -46,10 +45,10 @@ Usage
 =====
 
 You'll need a project that you version with one of our supported VCSs
-(currently Git, Mercurial, and Bazaar, but it should be pretty easy to
-add backends for other systems).  You'll also need a config file
-called ``.update-copyright.conf`` in your package root, which will be
-parsed using Python's RawConfigParser_ (`syntax documentation`_,
+(currently Git_ and Mercurial_, but it should be pretty easy to add
+backends for other systems).  You'll also need a config file called
+``.update-copyright.conf`` in your package root, which will be parsed
+using Python's RawConfigParser_ (`syntax documentation`_,
 interpolation is turned off).  Your config file will look something
 like::
 
@@ -183,6 +182,7 @@ wking@tremily.us
 .. _layman: http://layman.sourceforge.net/
 .. _wtk overlay: http://blog.tremily.us/posts/Gentoo_overlay/
 .. _Git: http://git-scm.com/
+.. _Mercurial: http://mercurial.selenic.com/
 .. _homepage: http://blog.tremily.us/posts/update-copyright/
 .. _RawConfigParser:
   http://docs.python.org/dev/library/configparser.html#configparser.RawConfigParser
