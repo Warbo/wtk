@@ -15,16 +15,6 @@
 # You should have received a copy of the GNU General Public License along with
 # update-copyright.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-
-import io as _io
-import os as _os
-import sys as _sys
-
-import mercurial as _mercurial
-from mercurial.__version__ import version as _version
-import mercurial.dispatch as _mercurial_dispatch
-
 from . import VCSBackend as _VCSBackend
 from . import utils as _utils
 
@@ -37,22 +27,9 @@ class MercurialBackend (_VCSBackend):
         self._version = _version
 
     def _hg_cmd(*args):
-        cwd = _os.getcwd()
-        stdout = _sys.stdout
-        stderr = _sys.stderr
-        tmp_stdout = _io.StringIO()
-        tmp_stderr = _io.StringIO()
-        _sys.stdout = tmp_stdout
-        _sys.stderr = tmp_stderr
-        _os.chdir(self._root)
-        try:
-            _mercurial_dispatch.dispatch(list(args))
-        finally:
-            _os.chdir(cwd)
-            _sys.stdout = stdout
-            _sys.stderr = stderr
-        return (tmp_stdout.getvalue().rstrip('\n'),
-                tmp_stderr.getvalue().rstrip('\n'))
+        status,stdout,stderr = _utils.invoke(
+            ['hg'] + list(args), cwd=self._root, unicode_output=True)
+        return stdout.rstrip('\n')
 
     def _years(self, filename=None):
         args = [
